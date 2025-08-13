@@ -21,18 +21,9 @@ import BrowseTeachersPage from './components/BrowseTeachersPage';
 import TeacherPublicProfilePage from './components/TeacherPublicProfilePage';
 import TeacherAvailabilityPage from './components/TeacherAvailabilityPage';
 import BookingPage from './components/BookingPage';
-import StudentBookingsPage from './components/StudentBookingsPage';
-import LeaveReviewPage from './components/LeaveReviewPage';
+import TeacherBookingsPage from './components/TeacherBookingsPage'; // Import new
 
-// Import global styles
 import './App.css';
-
-// Load Poppins font with next/font/google
-import { Poppins } from 'next/font/google';
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '600', '700'],
-});
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -42,7 +33,6 @@ function App() {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
-  const [selectedBooking, setSelectedBooking] = useState(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -84,9 +74,9 @@ function App() {
       const currentUser = { ...session.user, ...profile };
       if (profile.role === 'super-admin') {
         switch (page) {
-          case 'super-admin': return <SuperAdminDashboard setPage={setPage} setSelectedApplication={setSelectedApplication} />;
-          case 'review-application': return <ApplicationReviewPage application={selectedApplication} setPage={setPage} />;
-          default: return <SuperAdminDashboard setPage={setPage} setSelectedApplication={setSelectedApplication} />;
+            case 'super-admin': return <SuperAdminDashboard setPage={setPage} setSelectedApplication={setSelectedApplication} />;
+            case 'review-application': return <ApplicationReviewPage application={selectedApplication} setPage={setPage} />;
+            default: return <SuperAdminDashboard setPage={setPage} setSelectedApplication={setSelectedApplication} />;
         }
       } else if (profile.role === 'teacher') {
         switch (page) {
@@ -96,10 +86,10 @@ function App() {
           case 'manage-quizzes': return <ManageQuizzesPage currentUser={currentUser} setPage={setPage} setSelectedQuiz={setSelectedQuiz} />;
           case 'teacher-profile': return <TeacherProfilePage currentUser={currentUser} setPage={setPage} />;
           case 'teacher-availability': return <TeacherAvailabilityPage currentUser={currentUser} setPage={setPage} />;
-          case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={setPage} />;
+          case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={setPage} />; // Add new route
           default: return <TeacherDashboard currentUser={currentUser} setPage={setPage} />;
         }
-      } else {
+      } else { // Student role
         switch (page) {
           case 'dashboard': return <StudentDashboard currentUser={currentUser} setPage={setPage} />;
           case 'select-subject': return <SubjectSelectionPage currentUser={currentUser} setPage={setPage} setSelectedSubject={setSelectedSubject} />;
@@ -110,12 +100,10 @@ function App() {
           case 'browse-teachers': return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
           case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={setPage} />;
           case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={setPage} />;
-          case 'student-bookings': return <StudentBookingsPage currentUser={currentUser} setPage={setPage} setSelectedBooking={setSelectedBooking} />;
-          case 'leave-review': return <LeaveReviewPage currentUser={currentUser} booking={selectedBooking} setPage={setPage} />;
           default: return <StudentDashboard currentUser={currentUser} setPage={setPage} />;
         }
       }
-    } else {
+    } else { // Not logged in - Public Pages
       switch (page) {
         case 'browse-teachers': return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
         case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} setPage={setPage} />;
@@ -128,11 +116,7 @@ function App() {
     }
   };
 
-  return (
-    <div className={`${poppins.className} App`}>
-      {renderPage()}
-    </div>
-  );
+  return <div className="App">{renderPage()}</div>;
 }
 
-export default App;
+export default App

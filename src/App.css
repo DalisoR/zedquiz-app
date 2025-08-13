@@ -122,6 +122,47 @@ button:disabled {
   margin: 0 auto;
   opacity: 0.9;
 }
+@media (max-width: 900px) {
+  .landing-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 3%;
+    gap: 10px;
+  }
+  .logo {
+    font-size: 24px;
+  }
+  .nav-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    align-items: stretch;
+  }
+  .hero-section {
+    padding: 60px 10px;
+  }
+  .hero-section h1 {
+    font-size: 28px;
+  }
+  .hero-section .subtitle {
+    font-size: 15px;
+  }
+  .features-section {
+    padding: 35px 5px;
+  }
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .feature-card {
+    padding: 12px;
+    font-size: 15px;
+  }
+  .landing-footer {
+    padding: 10px 3%;
+    font-size: 12px;
+  }
+}
 .hero-button {
   background-color: var(--zambian-copper);
   padding: 15px 35px;

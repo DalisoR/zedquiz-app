@@ -49,17 +49,15 @@ function TutorApplicationPage({ setPage }) {
             const cvPath = await uploadFile(cvFile, 'cv');
             const certsPath = await uploadFile(certsFile, 'certificates');
 
-            const { error: insertError } = await supabase
-                .from('tutor_applications')
-                .insert({
-                    user_id: newUserId,
-                    full_name: fullName,
-                    phone_number: phoneNumber,
-                    qualifications: qualifications,
-                    cv_url: cvPath,
-                    certificates_url: certsPath,
-                    status: 'pending',
-                });
+            // First insert the application without the status (in case the column doesn't exist yet)
+            const { error: insertError } = await supabase.rpc('submit_tutor_application', {
+                p_user_id: newUserId,
+                p_full_name: fullName,
+                p_phone_number: phoneNumber,
+                p_qualifications: qualifications,
+                p_cv_url: cvPath,
+                p_certificates_url: certsPath
+            });
             
             if (insertError) throw insertError;
 

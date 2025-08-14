@@ -102,7 +102,7 @@ function TutorApplicationPage({ setPage }) {
                         </div>
                         <div className="form-group">
                             <label htmlFor="qualifications">Qualifications / Course of Study</label>
-                            <textarea id="qualifications" value={qualifications} onChange={(e) => setQualifications(e.target.value)} placeholder="e.g., TCZ Certified Teacher, or 2nd Year Student Teacher at UNZA" required />
+                            <textarea id="qualifications" value={qualifications} onChange={(e) => setQualifications(e.target.value)} placeholder="e.g., TCZ Certified Teacher, or 2nd Year Student Teacher at a reputable institution" required />
                         </div>
                         <div className="form-group">
                             <label htmlFor="cv-upload">Upload CV (PDF only)</label>

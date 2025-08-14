@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import BadgeManager from './admin/BadgeManager';
 
 function SuperAdminDashboard({ setPage, setSelectedApplication }) {
+    const [activeTab, setActiveTab] = useState('applications');
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -33,9 +35,24 @@ function SuperAdminDashboard({ setPage, setSelectedApplication }) {
         <div className="main-container">
             <header className="main-header super-admin-header">
                 <h2>Super Admin Panel</h2>
+                <div className="tabs">
+                    <button 
+                        className={`tab-button ${activeTab === 'applications' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('applications')}
+                    >
+                        Applications
+                    </button>
+                    <button 
+                        className={`tab-button ${activeTab === 'badges' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('badges')}
+                    >
+                        Manage Badges
+                    </button>
+                </div>
                 <button className="logout-button" onClick={() => supabase.auth.signOut()}>Log Out</button>
             </header>
             <div className="content-body">
+                {activeTab === 'applications' ? (
                 <div className="card">
                     <h3>Pending Teacher Applications</h3>
                     {loading ? (
@@ -53,9 +70,14 @@ function SuperAdminDashboard({ setPage, setSelectedApplication }) {
                             ))}
                         </ul>
                     ) : (
-                        <p>There are no pending applications.</p>
+                        <p>No pending applications.</p>
                     )}
                 </div>
+                ) : (
+                    <div className="card">
+                        <BadgeManager />
+                    </div>
+                )}
             </div>
         </div>
     );

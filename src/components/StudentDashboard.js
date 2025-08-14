@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { FiAward, FiShoppingBag, FiDollarSign, FiStar, FiClock, FiCheckCircle } from 'react-icons/fi';
 
 function StudentDashboard({ currentUser, setPage }) {
   const [quizHistory, setQuizHistory] = useState([]);
@@ -55,10 +56,28 @@ function StudentDashboard({ currentUser, setPage }) {
   const canTakeQuiz = currentUser.subscription_tier !== 'free' || quizzesToday < dailyQuizLimit;
 
   return (
-    <div className="main-container">
-      <header className="main-header">
-        <h2>Welcome, {currentUser.full_name}!</h2>
-        <button className="logout-button" onClick={() => supabase.auth.signOut()}>Log Out</button>
+    <div className="dashboard">
+      <header className="dashboard-header">
+        <h2>Welcome, {currentUser.full_name || 'Student'}</h2>
+        <div className="header-actions">
+          <button 
+            className="btn btn-secondary" 
+            onClick={() => setPage('leaderboard')}
+            style={{ marginRight: '10px' }}
+          >
+            🏆 Leaderboard
+          </button>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => setPage('browse-teachers')}
+            style={{ marginRight: '10px' }}
+          >
+            👨‍🏫 Browse Tutors
+          </button>
+          <button className="btn btn-outline" onClick={() => supabase.auth.signOut()}>
+            Sign Out
+          </button>
+        </div>
       </header>
       <div className="content-body">
         {applicationStatus && (
@@ -73,7 +92,41 @@ function StudentDashboard({ currentUser, setPage }) {
               <h3>My Profile</h3>
               <p><strong>School:</strong> {currentUser.school_name || 'Not set'}</p>
               <p><strong>Grade:</strong> {currentUser.grade_level || 'Not set'}</p>
-              <p><strong>Subscription:</strong> <span className="tier-badge">{currentUser.subscription_tier}</span></p>
+              <div className="subscription-status">
+                <strong>Subscription:</strong> 
+                <span className={`tier-badge ${currentUser.subscription_tier}`}>
+                  {currentUser.subscription_tier}
+                  {currentUser.subscription_tier === 'premium' && <FiStar className="premium-icon" />}
+                </span>
+                <button 
+                  className="btn-upgrade"
+                  onClick={() => setPage('subscriptions')}
+                >
+                  {currentUser.subscription_tier === 'free' ? 'Upgrade Now' : 'Manage'}
+                </button>
+              </div>
+              
+              {/* Quick Stats */}
+              <div className="quick-stats">
+                <div className="stat-item">
+                  <FiAward className="stat-icon" />
+                  <div>
+                    <div className="stat-value">
+                      {currentUser.points_balance || 0}
+                    </div>
+                    <div className="stat-label">Points</div>
+                  </div>
+                </div>
+                <div className="stat-item">
+                  <FiClock className="stat-icon" />
+                  <div>
+                    <div className="stat-value">
+                      {dailyQuizLimit - (currentUser.subscription_tier === 'free' ? quizzesToday : 0)}/{dailyQuizLimit}
+                    </div>
+                    <div className="stat-label">Quizzes Left</div>
+                  </div>
+                </div>
+              </div>
           </div>
           <div className="card start-quiz">
               <h3>Ready to test your knowledge?</h3>
@@ -98,17 +151,72 @@ function StudentDashboard({ currentUser, setPage }) {
           </div>
         </div>
 
-        <div className="card manage-lessons-card">
-            <h3>My Lessons & Tutors</h3>
+        <div className="dashboard-grid">
+          {/* Lessons Card */}
+          <div className="card manage-lessons-card">
+            <h3><FiClock className="card-icon" /> My Lessons</h3>
             <p>View your upcoming lessons or find a new teacher.</p>
             <div className="dashboard-buttons">
-                <button className="my-lessons-btn" onClick={() => setPage('student-bookings')}>My Lessons</button>
-                <button className="browse-teachers-btn" onClick={() => setPage('browse-teachers')}>Find a Teacher</button>
+              <button className="my-lessons-btn" onClick={() => setPage('student-bookings')}>My Lessons</button>
+              <button className="browse-teachers-btn" onClick={() => setPage('browse-teachers')}>Find a Teacher</button>
             </div>
+          </div>
+
+          {/* Premium Features Card */}
+          <div className="card premium-features">
+            <h3><FiStar className="card-icon" /> Premium Features</h3>
+            <ul className="premium-list">
+              <li><FiCheckCircle /> Unlimited daily quizzes</li>
+              <li><FiCheckCircle /> Advanced analytics</li>
+              <li><FiCheckCircle /> Priority support</li>
+              <li><FiCheckCircle /> Ad-free experience</li>
+            </ul>
+            <button 
+              className="btn-premium"
+              onClick={() => setPage('subscriptions')}
+            >
+              {currentUser.subscription_tier === 'free' ? 'Upgrade Now' : 'Manage Subscription'}
+            </button>
+          </div>
+
+          {/* Earn Money Card */}
+          <div className="card affiliate-card">
+            <h3><FiDollarSign className="card-icon" /> Earn Money</h3>
+            <p>Join our affiliate program and earn commissions by referring students and teachers.</p>
+            <div className="affiliate-cta">
+              <button 
+                className="btn-affiliate"
+                onClick={() => setPage('affiliate')}
+              >
+                Join Affiliate Program
+              </button>
+            </div>
+          </div>
+
+          {/* Premium Shop Card */}
+          <div className="card shop-card">
+            <h3><FiShoppingBag className="card-icon" /> Premium Shop</h3>
+            <p>Purchase premium content, study guides, and exam prep materials.</p>
+            <button 
+              className="btn-shop"
+              onClick={() => setPage('shop')}
+            >
+              Visit Shop
+            </button>
+          </div>
         </div>
         
         <div className="card quiz-history">
-            <h3>My Recent Quizzes</h3>
+            <div className="card-header">
+              <h3>My Recent Quizzes</h3>
+              <button 
+                className="btn-text"
+                onClick={() => setPage('select-subject')}
+                disabled={!canTakeQuiz}
+              >
+                Take New Quiz
+              </button>
+            </div>
             {loadingHistory ? (
                 <p>Loading history...</p>
             ) : quizHistory.length > 0 ? (

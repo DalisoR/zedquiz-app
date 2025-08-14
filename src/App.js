@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { initAnalytics, trackPageView, trackLogin } from './utils/analytics';
-import { ToastProvider } from './components/ui/Toast';
+import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
+import { GamificationProvider } from './contexts/GamificationContext';
+import { MonetizationProvider } from './contexts/MonetizationContext';
 import LandingPage from './components/LandingPage';
+import SubscriptionPlans from './components/monetization/SubscriptionPlans';
+import InAppPurchases from './components/monetization/InAppPurchases';
+import AffiliateProgram from './components/monetization/AffiliateProgram';
 import AuthChoicePage from './components/AuthChoicePage';
 import LoginPage from './components/LoginPage';
 import RegistrationPage from './components/RegistrationPage';
@@ -116,8 +123,11 @@ function App() {
           case 'select-subject': return <SubjectSelectionPage currentUser={currentUser} setPage={setPage} setSelectedSubject={setSelectedSubject} />;
           case 'quiz': return <QuizPage currentUser={currentUser} selectedSubject={selectedSubject} setPage={setPage} />;
           case 'leaderboard': return <LeaderboardPage currentUser={currentUser} setPage={setPage} />;
-          case 'upgrade': return <UpgradePage currentUser={currentUser} setPage={setPage} />;
-          case 'tutor-application': return <TutorApplicationPage currentUser={currentUser} setPage={setPage} />;
+          case 'upgrade': return <UpgradePage currentUser={profile} setPage={setPage} />;
+          case 'subscriptions': return <SubscriptionPlans currentUser={profile} setPage={setPage} />;
+          case 'shop': return <InAppPurchases currentUser={profile} setPage={setPage} />;
+          case 'affiliate': return <AffiliateProgram currentUser={profile} setPage={setPage} />;
+          case 'tutor-application': return <TutorApplicationPage currentUser={profile} setPage={setPage} />;
           case 'browse-teachers': return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
           case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={setPage} />;
           case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={setPage} />;
@@ -146,12 +156,22 @@ function App() {
   };
 
   return (
-    <ToastProvider>
-      <div className="app">
-        {renderPage()}
-      </div>
-    </ToastProvider>
+    <Router>
+      <ErrorBoundary>
+        <AuthProvider>
+          <ToastProvider>
+            <GamificationProvider>
+              <MonetizationProvider>
+                <div className="min-h-screen bg-gray-50">
+                  {renderPage()}
+                </div>
+              </MonetizationProvider>
+            </GamificationProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </Router>
   );
 }
 
-export default App
+export default App;

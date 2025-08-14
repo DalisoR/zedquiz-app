@@ -13,6 +13,12 @@ export const ToastProvider = ({ children, position = 'bottom-right', limit = 5, 
     );
   }, []);
 
+  const startTimer = useCallback((toastId, duration) => {
+    return setTimeout(() => {
+      removeToast(toastId);
+    }, duration);
+  }, [removeToast]);
+
   const addToast = useCallback((message, options = {}) => {
     const {
       type = 'info',
@@ -29,13 +35,8 @@ export const ToastProvider = ({ children, position = 'bottom-right', limit = 5, 
       removeToast(options.id);
     }
 
-    // Limit the number of toasts
-    if (toasts.length >= limit) {
-      removeToast(toasts[0].id);
-    }
-
-    setToasts((currentToasts) => {
-      const newToasts = [...currentToasts, { 
+    setToasts((prevToasts) => {
+      const newToasts = [...prevToasts, { 
         id, 
         message, 
         type, 
@@ -45,18 +46,20 @@ export const ToastProvider = ({ children, position = 'bottom-right', limit = 5, 
         className
       }];
       
-      // Limit the number of toasts
-      return newToasts.slice(-limit);
+      // Only keep the last 'limit' toasts
+      if (newToasts.length > limit) {
+        return newToasts.slice(-limit);
+      }
+      return newToasts;
     });
 
     if (duration) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
+      const timer = startTimer(id, duration);
+      return () => clearTimeout(timer);
     }
 
     return id;
-  }, [limit, autoClose]);
+  }, [limit, autoClose, removeToast, startTimer]);
 
 
 

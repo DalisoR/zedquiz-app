@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
+import { usePoints } from '../hooks/usePoints';
+import { useToastNotification } from '../hooks/useToastNotification';
 
 function QuizPage({ currentUser, selectedSubject, setPage }) {
   const [quizQuestions, setQuizQuestions] = useState([]);
@@ -10,6 +12,8 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
   const [quizFinished, setQuizFinished] = useState(false);
   const [studentAnswer, setStudentAnswer] = useState('');
   const [isGrading, setIsGrading] = useState(false);
+  const { awardPoints } = usePoints();
+  const { showSuccess } = useToastNotification();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -68,38 +72,76 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
     saveQuizResult();
   }, [quizFinished, quizId, score, quizQuestions.length, currentUser, selectedSubject]);
 
-
   const proceedToNextQuestion = () => {
-      setStudentAnswer('');
-      if (currentQuestionIndex < quizQuestions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-      } else {
-        setQuizFinished(true);
-      }
+    setStudentAnswer('');
+    if (currentQuestionIndex < quizQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      handleFinishQuiz();
+    }
   }
 
-  const handleShortAnswerSubmit = async () => {
-      if (!studentAnswer.trim()) {
-          alert('Please enter an answer.');
-          return;
+  const handleFinishQuiz = async () => {
+    try {
+      // Calculate points based on score (10 points per correct answer)
+      const pointsEarned = score * 10;
+      
+      // Award points for completing the quiz
+      await awardPoints(
+        pointsEarned,
+        'quiz_completion',
+        quizId,
+        `You earned ${pointsEarned} points for completing the quiz!`
+      );
+      
+      // Award bonus points for perfect score
+      if (quizQuestions.length > 0 && score === quizQuestions.length) {
+        const bonusPoints = 50;
+        await awardPoints(
+          bonusPoints,
+          'perfect_quiz',
+          quizId,
+          `Perfect score! Bonus ${bonusPoints} points!`
+        );
       }
-      setIsGrading(true);
-      const currentQuestion = quizQuestions[currentQuestionIndex];
-
-      const { data, error } = await supabase.functions.invoke('grade-short-answer', {
-          body: { studentAnswer, correctAnswer: currentQuestion.correct_answer },
-      });
-
-      if (error) {
-          alert('Error grading answer: ' + error.message);
-          setIsGrading(false);
-          return;
+      
+      // Check if this is the first attempt
+      const { data: attempts, error: attemptsError } = await supabase
+        .from('quiz_attempts')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('quiz_id', quizId);
+        
+      if (!attemptsError && attempts && attempts.length === 0) {
+        const firstAttemptBonus = 20;
+        await awardPoints(
+          firstAttemptBonus,
+          'first_attempt',
+          quizId,
+          `First attempt bonus! +${firstAttemptBonus} points!`
+        );
       }
-
-      if (data.evaluation === 'CORRECT') {
-          setScore(score + 1);
-      }
-      alert(`AI Evaluation: ${data.evaluation}\n\nExplanation: ${data.explanation}`);
+      
+      // Record the quiz attempt
+      const { error } = await supabase
+        .from('quiz_attempts')
+        .insert([
+          {
+            user_id: currentUser.id,
+            quiz_id: quizId,
+            score: score,
+            total_questions: quizQuestions.length,
+            completed_at: new Date().toISOString()
+          }
+        ]);
+        
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error('Error in handleFinishQuiz:', error);
+    } finally {
+      setQuizFinished(true);
+    }
       setIsGrading(false);
       proceedToNextQuestion();
   };
@@ -107,6 +149,39 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
   const handleAnswer = (isCorrect) => {
     if (isCorrect) setScore(score + 1);
     proceedToNextQuestion();
+  };
+
+  const handleShortAnswerSubmit = async () => {
+    if (!studentAnswer.trim()) return; // Don't submit empty answers
+    
+    setIsGrading(true);
+    
+    try {
+      // In a real implementation, you would send this to your backend for AI grading
+      // For now, we'll do a simple case-insensitive comparison
+      const isCorrect = currentQuestion.correct_answer.toLowerCase() === studentAnswer.toLowerCase().trim();
+      
+      if (isCorrect) {
+        setScore(score + 1);
+      }
+      
+      // Show feedback to the user
+      if (isCorrect) {
+        showSuccess('Correct answer!');
+      } else {
+        showSuccess(`Incorrect. The correct answer is: ${currentQuestion.correct_answer}`);
+      }
+      
+      // Clear the input and proceed to next question
+      setStudentAnswer('');
+      proceedToNextQuestion();
+      
+    } catch (error) {
+      console.error('Error grading short answer:', error);
+      showSuccess('Error grading your answer. Please try again.');
+    } finally {
+      setIsGrading(false);
+    }
   };
 
   if (loading) {

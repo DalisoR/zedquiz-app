@@ -58,6 +58,7 @@ function TutorApplicationPage({ setPage }) {
                     qualifications: qualifications,
                     cv_url: cvPath,
                     certificates_url: certsPath,
+                    status: 'pending',
                 });
             
             if (insertError) throw insertError;

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import { initAnalytics, trackPageView, trackLogin } from './utils/analytics';
+import { ToastProvider } from './components/ui/Toast';
 import LandingPage from './components/LandingPage';
 import AuthChoicePage from './components/AuthChoicePage';
 import LoginPage from './components/LoginPage';
@@ -13,6 +15,7 @@ import AddQuestionsPage from './components/AddQuestionsPage';
 import LeaderboardPage from './components/LeaderboardPage';
 import UpgradePage from './components/UpgradePage';
 import TutorApplicationPage from './components/TutorApplicationPage';
+import ErrorBoundary from './components/ErrorBoundary';
 import SuperAdminDashboard from './components/SuperAdminDashboard';
 import ApplicationReviewPage from './components/ApplicationReviewPage';
 import ManageQuizzesPage from './components/ManageQuizzesPage';
@@ -34,13 +37,31 @@ function App() {
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
 
+  // Initialize analytics
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    initAnalytics();
+  }, []);
+
+  // Track page views
+  useEffect(() => {
+    trackPageView(window.location.pathname);
+  }, [page]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        trackLogin('email'); // Track initial login if session exists
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (!session) {
         setProfile(null);
         setPage('landing');
+      } else if (_event === 'SIGNED_IN') {
+        trackLogin('email');
       }
     });
     return () => subscription.unsubscribe();
@@ -105,10 +126,18 @@ function App() {
       }
     } else { // Not logged in - Public Pages
       switch (page) {
-        case 'browse-teachers': return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
-        case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} setPage={setPage} />;
-        case 'tutor-application': return <TutorApplicationPage setPage={setPage} />;
-        case 'auth-choice': return <AuthChoicePage setPage={setPage} />;
+        case 'browse-teachers':
+          return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
+        case 'teacher-public-profile':
+          return <TeacherPublicProfilePage teacher={selectedTeacher} setPage={setPage} />;
+        case 'tutor-application':
+          return (
+            <ErrorBoundary>
+              <TutorApplicationPage setPage={setPage} />
+            </ErrorBoundary>
+          );
+        case 'auth-choice':
+          return <AuthChoicePage setPage={setPage} />;
         case 'login': return <LoginPage setPage={setPage} />;
         case 'register': return <RegistrationPage setPage={setPage} />;
         case 'landing': default: return <LandingPage setPage={setPage} />;
@@ -116,7 +145,13 @@ function App() {
     }
   };
 
-  return <div className="App">{renderPage()}</div>;
+  return (
+    <ToastProvider>
+      <div className="app">
+        {renderPage()}
+      </div>
+    </ToastProvider>
+  );
 }
 
 export default App

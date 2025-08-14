@@ -1,124 +1,373 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Skeleton } from './ui/Skeleton';
+import { useFormValidation } from '../hooks/useFormValidation';
+import { getErrorMessage } from '../utils/errorHandling';
+import { trackEvent } from '../utils/analytics';
 import { supabase } from '../supabaseClient';
+import { useToastNotification } from '../hooks/useToastNotification';
+
+const initialFormState = {
+  email: '',
+  password: '',
+  fullName: '',
+  phoneNumber: '',
+  qualifications: '',
+  cvFile: null,
+  certsFile: null
+};
 
 function TutorApplicationPage({ setPage }) {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [fullName, setFullName] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [qualifications, setQualifications] = useState('');
-    const [cvFile, setCvFile] = useState(null);
-    const [certsFile, setCertsFile] = useState(null);
-    const [loading, setLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
+  const { showSuccess, showError, showInfo, dismissToast } = useToastNotification();
+  
+  const form = useFormValidation(initialFormState);
+  const {
+    values,
+    errors,
+    touched,
+    isSubmitting,
+    setIsSubmitting,
+    setValues,
+    handleChange,
+    handleBlur,
+    handleSubmit
+  } = form;
 
-    const handleFileChange = (setter) => (event) => {
-        if (event.target.files && event.target.files.length > 0) {
-            setter(event.target.files[0]);
+  useEffect(() => {
+    const timer = setTimeout(() => setPageLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleFileChange = (field) => (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      const fakeEvent = {
+        target: {
+          name: field,
+          value: file,
+          files: [file]
         }
-    };
+      };
+      handleChange(fakeEvent);
+      
+      // Validate file
+      if (file.size > 5 * 1024 * 1024) {
+        // Handle file size error
+        const errorEvent = {
+          target: {
+            name: field,
+            value: file
+          }
+        };
+        // This will trigger validation in the form hook
+        handleBlur(errorEvent);
+      }
+    }
+  };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        if (!cvFile || !certsFile) {
-            alert('Please upload both your CV and your certificates.');
-            return;
-        }
-        setLoading(true);
-
-        try {
-            const { data: authData, error: authError } = await supabase.auth.signUp({
-                email,
-                password,
-                options: { data: { full_name: fullName, role: 'student' } },
-            });
-
-            if (authError) throw authError;
-            if (!authData.user) throw new Error("Account created, but user data not returned.");
-
-            const newUserId = authData.user.id;
-
-            const uploadFile = async (file, fileType) => {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${fileType}.${fileExt}`;
-                const filePath = `${newUserId}/${fileName}`;
-                const { error } = await supabase.storage.from('tutor_documents').upload(filePath, file, { upsert: true });
-                if (error) throw error;
-                return filePath;
-            };
-
-            const cvPath = await uploadFile(cvFile, 'cv');
-            const certsPath = await uploadFile(certsFile, 'certificates');
-
-            // First insert the application without the status (in case the column doesn't exist yet)
-            const { error: insertError } = await supabase.rpc('submit_tutor_application', {
-                p_user_id: newUserId,
-                p_full_name: fullName,
-                p_phone_number: phoneNumber,
-                p_qualifications: qualifications,
-                p_cv_url: cvPath,
-                p_certificates_url: certsPath
-            });
+  const onSubmit = async (formValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Show loading toast
+      const toastId = showInfo('Submitting your application...', {
+        title: 'Processing',
+        duration: false, // Don't auto-dismiss
+        className: 'toast-loading'
+      });
+      
+      try {
+        // Handle file uploads
+        const uploadFile = async (file, path) => {
+          if (!file) return null;
+          
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+          const filePath = `${path}/${fileName}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('tutor-applications')
+            .upload(filePath, file);
             
-            if (insertError) throw insertError;
+          if (uploadError) {
+            throw new Error(`file-upload:${uploadError.message}`);
+          }
+          
+          const { data: { publicUrl } } = supabase.storage
+            .from('tutor-applications')
+            .getPublicUrl(filePath);
+            
+          return publicUrl;
+        };
+        
+        // Upload files in parallel with progress updates
+        showInfo('Uploading your documents...', {
+          title: 'Uploading',
+          duration: false,
+          className: 'toast-loading',
+          id: toastId
+        });
+        
+        const [cvUrl, certsUrl] = await Promise.all([
+          uploadFile(formValues.cvFile, 'cv'),
+          uploadFile(formValues.certsFile, 'certificates')
+        ]);
+        
+        // Submit application data
+        showInfo('Finalizing your application...', {
+          title: 'Almost there',
+          duration: false,
+          className: 'toast-loading',
+          id: toastId
+        });
+        
+        const { error } = await supabase
+          .from('tutor_applications')
+          .insert([
+            {
+              user_id: (await supabase.auth.getUser()).data.user.id,
+              full_name: formValues.fullName,
+              phone_number: formValues.phoneNumber,
+              qualifications: formValues.qualifications,
+              cv_url: cvUrl,
+              certificates_url: certsUrl,
+              status: 'pending',
+              created_at: new Date().toISOString()
+            }
+          ]);
+          
+        if (error) throw error;
+        
+        // Show success message and track
+        showSuccess('Application submitted successfully! We will review your application and get back to you within 3-5 business days.', {
+          title: 'Success!',
+          duration: 10000
+        });
+        
+        trackEvent('tutor_application_submitted', 'application', 'success');
+        
+        // Redirect after a short delay
+        setTimeout(() => {
+          setPage('landing');
+        }, 2000);
+        
+      } catch (error) {
+        // Dismiss loading toast
+        dismissToast(toastId);
+        
+        console.error('Submission error:', error);
+        const errorMessage = getErrorMessage(error);
+        
+        showError(error, {
+          title: 'Submission Failed',
+          showReportLink: true,
+          action: (
+            <button 
+              className="mt-2 text-sm font-medium text-red-700 hover:underline"
+              onClick={() => {
+                // Pre-fill the form with previous values
+                setValues(formValues);
+              }}
+            >
+              Try again
+            </button>
+          )
+        });
+        
+        trackEvent('tutor_application_error', 'application', errorMessage);
+        throw error; // Re-throw to be caught by outer catch
+      }
+      
+    } catch (error) {
+      // This will catch any unhandled errors
+      console.error('Unexpected error:', error);
+      showError('An unexpected error occurred. Please try again later or contact support if the problem persists.', {
+        title: 'Oops!',
+        showReportLink: true
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-            alert('Your application has been submitted successfully! We will review it and get back to you.');
-            setPage('login');
-
-        } catch (error) {
-            alert('Error submitting application: ' + error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+  if (pageLoading) {
     return (
-        <div className="main-container">
-            <header className="main-header">
-                <h2>Become a ZedQuiz Teacher</h2>
-                <button className="back-button" onClick={() => setPage('landing')}>Back to Home</button>
-            </header>
-            <div className="content-body">
-                <div className="card">
-                    <h3>Teacher Application Form</h3>
-                    <p>Complete the form below to create your account and apply. Student teachers in their second year and above are welcome!</p>
-                    <form onSubmit={handleSubmit}>
-                        {/* Form groups remain the same */}
-                        <div className="form-group">
-                            <label htmlFor="full-name">Full Name</label>
-                            <input id="full-name" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="email">Email Address</label>
-                            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="password">Create Password</label>
-                            <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="phone">Phone Number</label>
-                            <input id="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="e.g., 0977123456" required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="qualifications">Qualifications / Course of Study</label>
-                            <textarea id="qualifications" value={qualifications} onChange={(e) => setQualifications(e.target.value)} placeholder="e.g., TCZ Certified Teacher, or 2nd Year Student Teacher at a reputable institution" required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="cv-upload">Upload CV (PDF only)</label>
-                            <input id="cv-upload" type="file" accept=".pdf" onChange={handleFileChange(setCvFile)} required />
-                        </div>
-                        <div className="form-group">
-                            <label htmlFor="certs-upload">Upload Qualifications/Transcripts (PDF only)</label>
-                            <input id="certs-upload" type="file" accept=".pdf" onChange={handleFileChange(setCertsFile)} required />
-                        </div>
-                        <button type="submit" disabled={loading}>
-                            {loading ? 'Submitting...' : 'Submit Application'}
-                        </button>
-                    </form>
-                </div>
-            </div>
+      <div className="main-container">
+        <header className="main-header">
+          <Skeleton width="250px" height="32px" />
+          <Skeleton width="120px" height="36px" />
+        </header>
+        <div className="content-body">
+          <div className="card">
+            <Skeleton width="200px" height="24px" style={{ marginBottom: '1rem' }} />
+            <Skeleton height="40px" style={{ marginBottom: '1rem' }} />
+            <Skeleton height="40px" style={{ marginBottom: '1rem' }} />
+            <Skeleton height="40px" style={{ marginBottom: '1rem' }} />
+            <Skeleton height="40px" style={{ marginBottom: '1rem' }} />
+            <Skeleton height="100px" style={{ marginBottom: '1rem' }} />
+            <Skeleton height="40px" style={{ marginBottom: '1rem' }} />
+          </div>
         </div>
+      </div>
     );
+  }
+
+  return (
+    <div className="main-container">
+      <header className="main-header">
+        <h2>Become a ZedQuiz Teacher</h2>
+        <button 
+          className="back-button" 
+          onClick={() => !isSubmitting && setPage('landing')}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Submitting...' : 'Back to Home'}
+        </button>
+      </header>
+      
+      <div className="content-body">
+        <div className="card">
+          
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={values.email}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`form-control ${errors.email && touched.email ? 'error' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.email && touched.email && (
+                <div className="error-message">{errors.email}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password (min 8 characters)</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                value={values.password}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`form-control ${errors.password && touched.password ? 'error' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.password && touched.password && (
+                <div className="error-message">{errors.password}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="fullName">Full Name</label>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                value={values.fullName}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                className={`form-control ${errors.fullName && touched.fullName ? 'error' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.fullName && touched.fullName && (
+                <div className="error-message">{errors.fullName}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="phoneNumber">Phone Number</label>
+              <input
+                id="phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                value={values.phoneNumber}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="+1234567890"
+                className={`form-control ${errors.phoneNumber && touched.phoneNumber ? 'error' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.phoneNumber && touched.phoneNumber && (
+                <div className="error-message">{errors.phoneNumber}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="qualifications">Your Qualifications</label>
+              <textarea
+                id="qualifications"
+                name="qualifications"
+                value={values.qualifications}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                rows="4"
+                className={`form-control ${errors.qualifications && touched.qualifications ? 'error' : ''}`}
+                disabled={isSubmitting}
+                placeholder="Please list your teaching experience, degrees, and relevant certifications"
+              />
+              {errors.qualifications && touched.qualifications && (
+                <div className="error-message">{errors.qualifications}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="cvFile">Upload Your CV (PDF, max 5MB)</label>
+              <input
+                id="cvFile"
+                name="cvFile"
+                type="file"
+                accept=".pdf"
+                onChange={handleFileChange('cvFile')}
+                className={`form-control-file ${errors.cvFile && touched.cvFile ? 'error' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.cvFile && touched.cvFile && (
+                <div className="error-message">{errors.cvFile}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="certsFile">Upload Your Certificates (PDF, max 5MB)</label>
+              <input
+                id="certsFile"
+                name="certsFile"
+                type="file"
+                accept=".pdf"
+                onChange={handleFileChange('certsFile')}
+                className={`form-control-file ${errors.certsFile && touched.certsFile ? 'error' : ''}`}
+                disabled={isSubmitting}
+              />
+              {errors.certsFile && touched.certsFile && (
+                <div className="error-message">{errors.certsFile}</div>
+              )}
+            </div>
+
+            <div className="form-actions">
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className={`btn btn-primary ${isSubmitting ? 'loading' : ''}`}
+                onClick={() => trackEvent('tutor_application_submit_click', 'form', 'submit')}
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner"></span>
+                    Submitting...
+                  </>
+                ) : 'Submit Application'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default TutorApplicationPage;

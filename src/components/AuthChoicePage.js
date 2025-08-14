@@ -1,9 +1,12 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 
 function AuthChoicePage({ setPage }) {
   return (
     <div className="auth-choice-container">
-      <div className="zambian-eagle">🦅</div>
+      <div className="logo" style={{ textAlign: 'center', marginBottom: 10 }}>
+        <img src={logo} alt="ZedQuiz Logo" style={{ height: 40, verticalAlign: 'middle' }} />
+      </div>
       <h2>Join ZedQuiz</h2>
       <p>Are you a new or returning user?</p>
       <div className="choice-buttons">

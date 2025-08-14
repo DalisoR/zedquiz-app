@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
+import logo from '../assets/logo.png';
 
 function RegistrationPage({ setPage }) {
   const [loading, setLoading] = useState(false);
@@ -46,8 +47,11 @@ function RegistrationPage({ setPage }) {
   };
 
   return (
-    <div className="login-container">
-      <div className="zambian-eagle">🦅</div>
+    <div className="register-container">
+      <div className="logo" style={{ textAlign: 'center', marginBottom: 10 }}>
+        <img src={logo} alt="ZedQuiz Logo" style={{ height: 40, verticalAlign: 'middle' }} />
+      </div>
+      
       <h2>Create Your Account</h2>
       <p>Join the ZedQuiz community!</p>
       <form onSubmit={handleRegister}>

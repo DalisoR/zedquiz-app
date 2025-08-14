@@ -1,4 +1,5 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 
 function UpgradePage({ setPage }) {
   const handleSubscribe = () => {
@@ -14,7 +15,9 @@ function UpgradePage({ setPage }) {
       </header>
       <div className="content-body">
         <div className="card upgrade-card">
-          <div className="zambian-eagle">🌟</div>
+          <div className="logo" style={{ textAlign: 'center', marginBottom: 10 }}>
+  <img src={logo} alt="ZedQuiz Logo" style={{ height: 40, verticalAlign: 'middle' }} />
+</div>
           <h3>Unlock Your Full Potential!</h3>
           <p>Join ZedQuiz Premium to get unlimited access to all our features and accelerate your learning journey.</p>
           <ul className="features-list">

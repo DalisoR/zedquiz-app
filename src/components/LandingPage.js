@@ -1,11 +1,13 @@
 import React from 'react';
+import logo from '../assets/logo.png';
 
 function LandingPage({ setPage }) {
   return (
     <div className="landing-container">
       <header className="landing-header">
         <div className="logo">
-          <span role="img" aria-label="eagle">🦅</span> ZedQuiz
+          <img src={logo} alt="ZedQuiz Logo" style={{ height: 40, verticalAlign: 'middle' }} />
+          <span style={{ marginLeft: 8, fontWeight: 700, fontSize: '1.3em', color: 'var(--zambian-green)' }}>ZedQuiz</span>
         </div>
         <nav className="nav-buttons">
           <button className="nav-button find-teacher-btn" onClick={() => setPage('browse-teachers')}>Find a Teacher</button>

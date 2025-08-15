@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.user_subscriptions (
 );
 
 -- Create partial unique index for active subscriptions
-CREATE UNIQUE INDEX idx_user_active_subscription ON public.user_subscriptions (user_id, status) 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_active_subscription ON public.user_subscriptions (user_id, status) 
 WHERE status = 'active';
 
 -- Create in-app products table
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS public.affiliate_referrals (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Create RLS policies
+-- Enable RLS
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
@@ -92,13 +92,33 @@ ALTER TABLE public.user_purchases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.affiliates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.affiliate_referrals ENABLE ROW LEVEL SECURITY;
 
+-- Create RLS policies
+CREATE POLICY "Allow public read access to plans" ON public.subscription_plans
+    FOR SELECT USING (true);
+
+CREATE POLICY "Allow public read access to products" ON public.products
+    FOR SELECT USING (true);
+
+CREATE POLICY "Users can manage their own subscriptions" ON public.user_subscriptions
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage their own purchases" ON public.user_purchases
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage their own affiliate data" ON public.affiliates
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Affiliates can manage their referrals" ON public.affiliate_referrals
+    FOR ALL USING ((SELECT affiliates.user_id FROM public.affiliates WHERE affiliates.id = affiliate_id) = auth.uid())
+    WITH CHECK ((SELECT affiliates.user_id FROM public.affiliates WHERE affiliates.id = affiliate_id) = auth.uid());
+
 -- Create indexes for better query performance
-CREATE INDEX idx_user_subscriptions_user_id ON public.user_subscriptions(user_id);
-CREATE INDEX idx_user_subscriptions_status ON public.user_subscriptions(status);
-CREATE INDEX idx_user_purchases_user_id ON public.user_purchases(user_id);
-CREATE INDEX idx_affiliates_user_id ON public.affiliates(user_id);
-CREATE INDEX idx_affiliate_referrals_affiliate_id ON public.affiliate_referrals(affiliate_id);
-CREATE INDEX idx_affiliate_referrals_referred_user_id ON public.affiliate_referrals(referred_user_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_user_id ON public.user_subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_status ON public.user_subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_user_purchases_user_id ON public.user_purchases(user_id);
+CREATE INDEX IF NOT EXISTS idx_affiliates_user_id ON public.affiliates(user_id);
+CREATE INDEX IF NOT EXISTS idx_affiliate_referrals_affiliate_id ON public.affiliate_referrals(affiliate_id);
+CREATE INDEX IF NOT EXISTS idx_affiliate_referrals_referred_user_id ON public.affiliate_referrals(referred_user_id);
 
 -- Create function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -110,26 +130,32 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Create triggers for updated_at
+DROP TRIGGER IF EXISTS update_subscription_plans_updated_at ON public.subscription_plans;
 CREATE TRIGGER update_subscription_plans_updated_at
 BEFORE UPDATE ON public.subscription_plans
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_user_subscriptions_updated_at ON public.user_subscriptions;
 CREATE TRIGGER update_user_subscriptions_updated_at
 BEFORE UPDATE ON public.user_subscriptions
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_products_updated_at ON public.products;
 CREATE TRIGGER update_products_updated_at
 BEFORE UPDATE ON public.products
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_user_purchases_updated_at ON public.user_purchases;
 CREATE TRIGGER update_user_purchases_updated_at
 BEFORE UPDATE ON public.user_purchases
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_affiliates_updated_at ON public.affiliates;
 CREATE TRIGGER update_affiliates_updated_at
 BEFORE UPDATE ON public.affiliates
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_affiliate_referrals_updated_at ON public.affiliate_referrals;
 CREATE TRIGGER update_affiliate_referrals_updated_at
 BEFORE UPDATE ON public.affiliate_referrals
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

@@ -125,7 +125,7 @@ function TutorApplicationPage({ setPage }) {
           .from('tutor_applications')
           .insert([
             {
-              user_id: (await supabase.auth.getUser()).data.user.id,
+              user_id: (await supabase.auth.getSession()).data.session.user.id,
               full_name: formValues.fullName,
               phone_number: formValues.phoneNumber,
               qualifications: formValues.qualifications,

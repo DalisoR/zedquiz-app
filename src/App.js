@@ -3,7 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { initAnalytics, trackPageView, trackLogin } from './utils/analytics';
 import { AuthProvider } from './contexts/AuthContext';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider } from './components/ui/Toast';
 import { GamificationProvider } from './contexts/GamificationContext';
 import { MonetizationProvider } from './contexts/MonetizationContext';
 import LandingPage from './components/LandingPage';
@@ -141,11 +141,7 @@ function App() {
         case 'teacher-public-profile':
           return <TeacherPublicProfilePage teacher={selectedTeacher} setPage={setPage} />;
         case 'tutor-application':
-          return (
-            <ErrorBoundary>
-              <TutorApplicationPage setPage={setPage} />
-            </ErrorBoundary>
-          );
+          return <TutorApplicationPage setPage={setPage} />;
         case 'auth-choice':
           return <AuthChoicePage setPage={setPage} />;
         case 'login': return <LoginPage setPage={setPage} />;
@@ -155,16 +151,21 @@ function App() {
     }
   };
 
+  // Move the renderPage call inside the providers
+  const appContent = (
+    <div className="min-h-screen bg-gray-50">
+      {renderPage()}
+    </div>
+  );
+
   return (
     <Router>
       <ErrorBoundary>
         <AuthProvider>
-          <ToastProvider>
+          <ToastProvider autoClose={5000} position="top-right">
             <GamificationProvider>
               <MonetizationProvider>
-                <div className="min-h-screen bg-gray-50">
-                  {renderPage()}
-                </div>
+                {appContent}
               </MonetizationProvider>
             </GamificationProvider>
           </ToastProvider>

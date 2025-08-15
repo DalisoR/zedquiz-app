@@ -379,6 +379,48 @@ button:disabled .spinner {
   vertical-align: middle;
 }
 
+/* General App Styles */
+
+.bookings-button {
+    background-color: #ffc107; /* Amber */
+}
+
+.earnings-button {
+    background-color: #28a745; /* Green */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.follow-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease-in-out;
+  margin-left: 1rem;
+}
+
+.follow-button.unfollow {
+  background-color: #6c757d;
+}
+
+.follow-button:hover {
+  opacity: 0.9;
+}
+
+.follow-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
 /* Form Styles */
 .form-group {
   margin-bottom: 1.5rem;

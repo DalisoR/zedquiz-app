@@ -1,0 +1,107 @@
+.parent-dashboard-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: #f5f5f5;
+    padding: 0.25rem;
+    border-radius: 8px;
+}
+
+.tab-button {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s;
+}
+
+.tab-button:hover {
+    background: #e0e0e0;
+}
+
+.tab-button.active {
+    background: white;
+    color: #1976d2;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.link-child-form, 
+.linked-children-list,
+.reports-tab {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.reports-tab {
+    padding: 0;
+    overflow: hidden;
+}
+
+.link-child-form form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.link-child-form input {
+    flex-grow: 1;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.linked-children-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.linked-children-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.link-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.status-pending {
+    background-color: #fff8e1; /* yellow-ish */
+    color: #8d6e63;
+}
+
+.status-approved {
+    background-color: #e8f5e9; /* green-ish */
+    color: #2e7d32;
+}
+
+.status-rejected {
+    background-color: #ffebee; /* red-ish */
+    color: #c62828;
+}

@@ -32,6 +32,8 @@ import TeacherPublicProfilePage from './components/TeacherPublicProfilePage';
 import TeacherAvailabilityPage from './components/TeacherAvailabilityPage';
 import BookingPage from './components/BookingPage';
 import TeacherBookingsPage from './components/TeacherBookingsPage'; // Import new
+import TeacherEarningsDashboard from './components/monetization/TeacherEarningsDashboard';
+import ParentDashboard from './components/ParentDashboard';
 
 import './App.css';
 
@@ -114,7 +116,8 @@ function App() {
           case 'manage-quizzes': return <ManageQuizzesPage currentUser={currentUser} setPage={setPage} setSelectedQuiz={setSelectedQuiz} />;
           case 'teacher-profile': return <TeacherProfilePage currentUser={currentUser} setPage={setPage} />;
           case 'teacher-availability': return <TeacherAvailabilityPage currentUser={currentUser} setPage={setPage} />;
-          case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={setPage} />; // Add new route
+                    case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={setPage} />; // Add new route
+          case 'teacher-earnings-dashboard': return <TeacherEarningsDashboard currentUser={currentUser} setPage={setPage} />;
           default: return <TeacherDashboard currentUser={currentUser} setPage={setPage} />;
         }
       } else { // Student role
@@ -131,6 +134,7 @@ function App() {
           case 'browse-teachers': return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
           case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={setPage} />;
           case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={setPage} />;
+          case 'parent-dashboard': return <ParentDashboard user={currentUser} setPage={setPage} />;
           default: return <StudentDashboard currentUser={currentUser} setPage={setPage} />;
         }
       }

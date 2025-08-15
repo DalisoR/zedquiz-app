@@ -31,6 +31,9 @@ function TeacherDashboard({ currentUser, setPage }) {
                  <button className="bookings-button" onClick={() => setPage('teacher-bookings')}>
                     Manage Bookings
                 </button>
+                <button className="earnings-button" onClick={() => setPage('teacher-earnings-dashboard')}>
+                    View My Earnings
+                </button>
             </div>
         </div>
       </div>

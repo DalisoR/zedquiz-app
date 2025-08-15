@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { FiAward, FiShoppingBag, FiDollarSign, FiStar, FiClock, FiCheckCircle } from 'react-icons/fi';
+import ChildConnectionRequests from './ChildConnectionRequests';
 
 function StudentDashboard({ currentUser, setPage }) {
   const [quizHistory, setQuizHistory] = useState([]);
@@ -79,7 +80,8 @@ function StudentDashboard({ currentUser, setPage }) {
           </button>
         </div>
       </header>
-      <div className="content-body">
+            <div className="content-body">
+        <ChildConnectionRequests user={currentUser} />
         {applicationStatus && (
             <div className="card tutor-application-card">
                 <h3>Teacher Application Status</h3>

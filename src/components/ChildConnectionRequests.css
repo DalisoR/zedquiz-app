@@ -1,0 +1,37 @@
+.connection-requests-container {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+
+.requests-list {
+    list-style: none;
+    padding: 0;
+}
+
+.requests-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.request-actions button {
+    margin-left: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.approve-btn {
+    background-color: #4CAF50; /* Green */
+    color: white;
+}
+
+.reject-btn {
+    background-color: #f44336; /* Red */
+    color: white;
+}

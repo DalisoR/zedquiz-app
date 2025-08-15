@@ -18,6 +18,8 @@ const StarRating = ({ rating }) => {
 function TeacherPublicProfilePage({ teacher, setPage, currentUser }) {
     const [reviewsData, setReviewsData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [isFollowLoading, setIsFollowLoading] = useState(true);
 
     useEffect(() => {
         const fetchReviews = async () => {
@@ -33,7 +35,31 @@ function TeacherPublicProfilePage({ teacher, setPage, currentUser }) {
             setLoading(false);
         };
         fetchReviews();
-    }, [teacher.user_id]);
+
+        const checkFollowStatus = async () => {
+            if (!currentUser) {
+                setIsFollowLoading(false);
+                return;
+            }
+            try {
+                const { data, error } = await supabase
+                    .from('student_follows')
+                    .select('*')
+                    .eq('student_id', currentUser.id)
+                    .eq('tutor_id', teacher.user_id)
+                    .single();
+                
+                if (data && !error) {
+                    setIsFollowing(true);
+                }
+            } catch (error) {
+                // Not an error if no record is found, just means not following
+            }
+            setIsFollowLoading(false);
+        };
+
+        checkFollowStatus();
+    }, [teacher.user_id, currentUser]);
 
     const handleBookLesson = () => {
         if (!currentUser) {
@@ -42,6 +68,44 @@ function TeacherPublicProfilePage({ teacher, setPage, currentUser }) {
             return;
         }
         setPage('booking');
+    };
+
+    const handleFollowToggle = async () => {
+        if (!currentUser) {
+            alert("Please log in to follow a teacher.");
+            setPage('auth-choice');
+            return;
+        }
+
+        setIsFollowLoading(true);
+
+        if (isFollowing) {
+            // Unfollow logic
+            const { error } = await supabase
+                .from('student_follows')
+                .delete()
+                .match({ student_id: currentUser.id, tutor_id: teacher.user_id });
+
+            if (error) {
+                alert('Error unfollowing teacher. Please try again.');
+                console.error('Error unfollowing:', error);
+            } else {
+                setIsFollowing(false);
+            }
+        } else {
+            // Follow logic
+            const { error } = await supabase
+                .from('student_follows')
+                .insert({ student_id: currentUser.id, tutor_id: teacher.user_id });
+
+            if (error) {
+                alert('Error following teacher. Please try again.');
+                console.error('Error following:', error);
+            } else {
+                setIsFollowing(true);
+            }
+        }
+        setIsFollowLoading(false);
     };
 
     return (
@@ -69,7 +133,17 @@ function TeacherPublicProfilePage({ teacher, setPage, currentUser }) {
                         <h4>My Availability</h4>
                         <p>{teacher.availability_text || "Not specified"}</p>
                     </div>
-                    <button className="book-lesson-btn" onClick={handleBookLesson}>Book a Lesson</button>
+                    <div className="profile-actions">
+                        <button className="book-lesson-btn" onClick={handleBookLesson}>Book a Lesson</button>
+                        {currentUser && currentUser.role === 'student' && (
+                            <button 
+                                className={`follow-btn ${isFollowing ? 'following' : ''}`}
+                                onClick={handleFollowToggle}
+                                disabled={isFollowLoading}>
+                                {isFollowLoading ? '...' : (isFollowing ? 'Unfollow' : 'Follow')}
+                            </button>
+                        )}
+                    </div>
                 </div>
 
                 <div className="card">

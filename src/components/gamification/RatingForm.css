@@ -1,0 +1,77 @@
+.rating-form-container {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  max-width: 500px;
+}
+
+.rating-form-container h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.star-rating {
+  margin-bottom: 1rem;
+}
+
+.star-rating input[type="radio"] {
+  display: none; /* Hide the actual radio button */
+}
+
+.star-rating label {
+  cursor: pointer;
+  font-size: 2.5rem;
+  color: #ccc;
+  transition: color 0.2s;
+}
+
+.star-rating label span:hover,
+.star-rating label span.filled {
+  color: #ffc107; /* Gold color for filled/hovered stars */
+}
+
+.rating-form-container textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.rating-form-container button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.rating-form-container button:hover {
+  background-color: #0056b3;
+}
+
+.rating-form-container button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.success-message {
+  color: #28a745;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}

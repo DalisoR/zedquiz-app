@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { usePoints } from '../hooks/usePoints';
 import { useToastNotification } from '../hooks/useToastNotification';
+import RatingForm from './gamification/RatingForm';
 
 function QuizPage({ currentUser, selectedSubject, setPage }) {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizId, setQuizId] = useState(null);
+  const [tutorId, setTutorId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
   const [studentAnswer, setStudentAnswer] = useState('');
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isGrading, setIsGrading] = useState(false);
   const { awardPoints } = usePoints();
   const { showSuccess } = useToastNotification();
@@ -21,7 +24,7 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
       // Find a PUBLISHED quiz that matches the grade and subject
       const { data: quizzes, error: quizError } = await supabase
         .from('quizzes')
-        .select('id')
+        .select('id, author_id')
         .eq('grade_level', currentUser.grade_level)
         .eq('subject', selectedSubject)
         .lte('publish_date', new Date().toISOString());
@@ -33,13 +36,14 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
         return;
       }
 
-      const currentQuizId = quizzes[0].id;
-      setQuizId(currentQuizId);
+      const currentQuiz = quizzes[0];
+      setQuizId(currentQuiz.id);
+      setTutorId(currentQuiz.author_id);
 
       const { data, error } = await supabase
         .from('questions')
         .select('*')
-        .eq('quiz_id', currentQuizId);
+        .eq('quiz_id', currentQuiz.id);
 
       if (error) console.error('Error fetching questions:', error);
       else setQuizQuestions(data);
@@ -195,7 +199,21 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
         <div className="content-body">
             <div className="card">
                 <p className="final-score">Your final score is: {score} out of {quizQuestions.length}</p>
-                <button onClick={() => setPage('dashboard')}>Back to Dashboard</button>
+                
+                {!ratingSubmitted && tutorId && (
+                  <RatingForm
+                    contentId={quizId}
+                    contentType="quiz"
+                    tutorId={tutorId}
+                    studentId={currentUser.id}
+                    onRatingSubmitted={() => {
+                      showSuccess('Thanks for your feedback!');
+                      setRatingSubmitted(true);
+                    }}
+                  />
+                )}
+
+                <button onClick={() => setPage('dashboard')} style={{ marginTop: '1rem' }}>Back to Dashboard</button>
             </div>
         </div>
       </div>

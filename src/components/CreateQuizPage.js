@@ -42,6 +42,23 @@ function CreateQuizPage({ currentUser, setPage, setSelectedQuiz }) {
     if (error) {
       alert('Error creating quiz: ' + error.message);
     } else if (data) {
+      // Log the contribution event
+      const { error: contributionError } = await supabase
+        .from('tutor_contribution_log')
+        .insert({
+          tutor_id: currentUser.id,
+          contribution_type: 'quiz_creation',
+          description: `Created quiz: "${quizTitle}"`,
+          points_awarded: 10, // Example: 10 points for creating a quiz
+          related_content_id: data.id
+        });
+
+      if (contributionError) {
+        // If logging fails, it's not critical enough to block the user,
+        // but we should log it for debugging.
+        console.error('Failed to log tutor contribution:', contributionError.message);
+      }
+
       alert('Quiz created successfully! Now add some questions.');
       setSelectedQuiz(data);
       setPage('add-questions');

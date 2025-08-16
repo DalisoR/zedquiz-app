@@ -40,6 +40,15 @@ const TeacherEarningsDashboard = lazy(() => import('./components/monetization/Te
 const ParentDashboard = lazy(() => import('./components/ParentDashboard'));
 const PaymentStatusPage = lazy(() => import('./components/PaymentStatusPage'));
 const InsertSampleQuestionPage = lazy(() => import('./components/InsertSampleQuestionPage'));
+const CreateCoursePage = lazy(() => import('./components/CreateCoursePage'));
+const ManageCoursesPage = lazy(() => import('./components/ManageCoursesPage'));
+const ManageCoursePage = lazy(() => import('./components/ManageCoursePage'));
+const ManageChapterPage = lazy(() => import('./components/ManageChapterPage'));
+const ManageLessonPage = lazy(() => import('./components/ManageLessonPage'));
+const BrowseCoursesPage = lazy(() => import('./components/BrowseCoursesPage'));
+const CourseOverviewPage = lazy(() => import('./components/CourseOverviewPage'));
+const LessonViewerPage = lazy(() => import('./components/LessonViewerPage'));
+const StudentCoursesPage = lazy(() => import('./components/StudentCoursesPage'));
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -50,6 +59,9 @@ function App() {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [selectedApplication, setSelectedApplication] = useState(null);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState(null);
 
   // Initialize analytics
   useEffect(() => {
@@ -155,6 +167,11 @@ function App() {
           case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={navigate} />;
           case 'teacher-earnings-dashboard': return <TeacherEarningsDashboard currentUser={currentUser} setPage={navigate} />;
           case 'insert-sample-question': return <InsertSampleQuestionPage currentUser={currentUser} setPage={navigate} />;
+          case 'create-course': return <CreateCoursePage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
+          case 'manage-courses': return <ManageCoursesPage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
+          case 'manage-course': return <ManageCoursePage currentUser={currentUser} selectedCourse={selectedCourse} setPage={navigate} setSelectedChapter={setSelectedChapter} />;
+          case 'manage-chapter': return <ManageChapterPage currentUser={currentUser} selectedChapter={selectedChapter} setPage={navigate} setSelectedLesson={setSelectedLesson} />;
+          case 'manage-lesson': return <ManageLessonPage currentUser={currentUser} selectedLesson={selectedLesson} setPage={navigate} />;
           default: return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
         }
       } else { // Student role
@@ -173,6 +190,10 @@ function App() {
           case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={navigate} />;
           case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={navigate} />;
           case 'parent-dashboard': return <ParentDashboard user={currentUser} setPage={navigate} />;
+          case 'browse-courses': return <BrowseCoursesPage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
+          case 'student-courses': return <StudentCoursesPage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
+          case 'course-overview': return <CourseOverviewPage currentUser={currentUser} selectedCourse={selectedCourse} setPage={navigate} setSelectedChapter={setSelectedChapter} setSelectedLesson={setSelectedLesson} />;
+          case 'lesson-viewer': return <LessonViewerPage currentUser={currentUser} selectedLesson={selectedLesson} selectedChapter={selectedChapter} setPage={navigate} />;
           default: return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
         }
       }
@@ -217,7 +238,16 @@ function App() {
       'add-questions': 'Add Questions',
       'manage-quizzes': 'Manage Quizzes',
       'teacher-profile': 'My Profile',
-      'review-application': 'Review Application'
+      'review-application': 'Review Application',
+      'create-course': 'Create Course',
+      'manage-courses': 'My Courses',
+      'manage-course': 'Manage Course',
+      'manage-chapter': 'Manage Chapter',
+      'manage-lesson': 'Manage Lesson',
+      'browse-courses': 'Browse Courses',
+      'student-courses': 'My Courses',
+      'course-overview': 'Course Overview',
+      'lesson-viewer': 'Lesson'
     };
     return map[page] || 'ZedQuiz';
   })();

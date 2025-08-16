@@ -11,10 +11,23 @@ function TeacherDashboard({ currentUser, setPage }) {
       <div className="content-body">
         <div className="card">
             <h3>Welcome, {currentUser.full_name}!</h3>
-            <p>From here, you can manage your profile, create quizzes, and handle lesson bookings.</p>
+            <p>From here, you can manage your profile, create courses, quizzes, and handle lesson bookings.</p>
         </div>
+        
         <div className="card admin-actions">
-            <h3>Actions</h3>
+            <h3>Course Management</h3>
+            <div className="admin-buttons">
+                <button className="start-button" onClick={() => setPage('create-course')}>
+                    Create New Course
+                </button>
+                <button className="manage-button" onClick={() => setPage('manage-courses')}>
+                    Manage My Courses
+                </button>
+            </div>
+        </div>
+
+        <div className="card admin-actions">
+            <h3>Quiz Management</h3>
             <div className="admin-buttons">
                 <button className="start-button" onClick={() => setPage('create-quiz')}>
                     Create New Quiz
@@ -22,6 +35,12 @@ function TeacherDashboard({ currentUser, setPage }) {
                 <button className="manage-button" onClick={() => setPage('manage-quizzes')}>
                     Manage My Quizzes
                 </button>
+            </div>
+        </div>
+
+        <div className="card admin-actions">
+            <h3>Teaching & Bookings</h3>
+            <div className="admin-buttons">
                 <button className="profile-button" onClick={() => setPage('teacher-profile')}>
                     Manage My Profile
                 </button>

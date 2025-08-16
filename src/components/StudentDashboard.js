@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { FiAward, FiShoppingBag, FiDollarSign, FiStar, FiClock, FiCheckCircle } from 'react-icons/fi';
 import ChildConnectionRequests from './ChildConnectionRequests';
+import { UsageSummaryWidget } from './UsageLimitGuard';
 
 function StudentDashboard({ currentUser, setPage }) {
   const [quizHistory, setQuizHistory] = useState([]);
@@ -153,6 +154,9 @@ function StudentDashboard({ currentUser, setPage }) {
           </div>
         </div>
 
+        {/* Usage Summary Widget */}
+        <UsageSummaryWidget currentUser={currentUser} setPage={setPage} />
+
         <div className="dashboard-grid">
           {/* Lessons Card */}
           <div className="card manage-lessons-card">
@@ -161,6 +165,7 @@ function StudentDashboard({ currentUser, setPage }) {
             <div className="dashboard-buttons">
               <button className="my-lessons-btn" onClick={() => setPage('student-bookings')}>My Lessons</button>
               <button className="browse-teachers-btn" onClick={() => setPage('browse-teachers')}>Find a Teacher</button>
+              <button className="certificates-btn" onClick={() => setPage('student-certificates')}>My Certificates</button>
             </div>
           </div>
 
@@ -181,16 +186,22 @@ function StudentDashboard({ currentUser, setPage }) {
             </button>
           </div>
 
-          {/* Earn Money Card */}
-          <div className="card affiliate-card">
-            <h3><FiDollarSign className="card-icon" /> Earn Money</h3>
-            <p>Join our affiliate program and earn commissions by referring students and teachers.</p>
-            <div className="affiliate-cta">
+          {/* Payment Management Card */}
+          <div className="card payment-card">
+            <h3><FiDollarSign className="card-icon" /> Payment & Billing</h3>
+            <p>Manage your subscription, view payment history, and update billing information.</p>
+            <div className="payment-buttons">
               <button 
-                className="btn-affiliate"
-                onClick={() => setPage('affiliate')}
+                className="btn-payment"
+                onClick={() => setPage('subscription-management')}
               >
-                Join Affiliate Program
+                Manage Subscription
+              </button>
+              <button 
+                className="btn-payment-history"
+                onClick={() => setPage('payment-history')}
+              >
+                Payment History
               </button>
             </div>
           </div>

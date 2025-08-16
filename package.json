@@ -5,6 +5,8 @@
   "dependencies": {
     "@craco/craco": "^6.4.3",
     "@supabase/supabase-js": "^2.55.0",
+    "axios": "^1.11.0",
+    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
     "react": "^18.2.0",

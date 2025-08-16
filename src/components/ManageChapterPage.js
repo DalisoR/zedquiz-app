@@ -188,6 +188,12 @@ function ManageChapterPage({ currentUser, selectedChapter, setPage, setSelectedL
             >
               Add Lesson
             </button>
+            <button
+              onClick={() => setPage('create-chapter-quiz')}
+              style={{ width: 'auto', background: '#8b5cf6' }}
+            >
+              Create Chapter Quiz
+            </button>
           </div>
         </div>
 

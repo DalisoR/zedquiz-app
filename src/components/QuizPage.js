@@ -16,7 +16,7 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [isGrading, setIsGrading] = useState(false);
   const { awardPoints } = usePoints();
-  const { showSuccess } = useToastNotification();
+  const { showSuccess, showError } = useToastNotification();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -86,6 +86,8 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
   }
 
   const handleFinishQuiz = async () => {
+    if (!quizId) return;
+    
     try {
       // Calculate points based on score (10 points per correct answer)
       const pointsEarned = score * 10;
@@ -94,6 +96,7 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
       await awardPoints(
         pointsEarned,
         'quiz_completion',
+        quizId,
         quizId,
         `You earned ${pointsEarned} points for completing the quiz!`
       );
@@ -161,28 +164,78 @@ function QuizPage({ currentUser, selectedSubject, setPage }) {
     setIsGrading(true);
     
     try {
-      // In a real implementation, you would send this to your backend for AI grading
-      // For now, we'll do a simple case-insensitive comparison
-      const isCorrect = currentQuestion.correct_answer.toLowerCase() === studentAnswer.toLowerCase().trim();
+      const checkAnswer = () => {
+        if (!studentAnswer.trim()) {
+          showError('No Answer', 'Please enter an answer before submitting.');
+          return;
+        }
+        
+        const currentQuestion = quizQuestions[currentQuestionIndex];
+        const userAnswer = studentAnswer.trim().toLowerCase();
+        const correctAnswer = currentQuestion.answer.toLowerCase();
+        
+        // Check for exact match first
+        if (userAnswer === correctAnswer) {
+          handleCorrectAnswer();
+          return;
+        }
+        
+        // Check for partial match (if answer is a phrase)
+        if (correctAnswer.includes(' ') && (correctAnswer.includes(userAnswer) || userAnswer.includes(correctAnswer))) {
+          handlePartialMatch(correctAnswer, 0.5);
+          return;
+        }
+        
+        // Split into words and check for matching words
+        const userWords = userAnswer.split(/\s+/);
+        const correctWords = correctAnswer.split(/\s+/);
+        const matchingWords = userWords.filter(word => 
+          correctWords.some(cw => cw === word)
+        );
+        
+        // If more than 50% of words match, give partial credit
+        const matchRatio = matchingWords.length / correctWords.length;
+        if (matchRatio > 0.5) {
+          handlePartialMatch(correctAnswer, matchRatio);
+        } else {
+          handleIncorrectAnswer(correctAnswer);
+        }
+      };
       
-      if (isCorrect) {
-        setScore(score + 1);
-      }
+      const handleCorrectAnswer = () => {
+        setScore(prev => prev + 1);
+        showSuccess({
+          title: 'Correct!',
+          message: 'Great job!'
+        });
+        proceedToNextQuestion();
+      };
       
-      // Show feedback to the user
-      if (isCorrect) {
-        showSuccess('Correct answer!');
-      } else {
-        showSuccess(`Incorrect. The correct answer is: ${currentQuestion.correct_answer}`);
-      }
+      const handlePartialMatch = (correctAnswer, scoreMultiplier) => {
+        const points = Math.ceil(scoreMultiplier * 10) / 10; // Round to 1 decimal place
+        setScore(prev => prev + scoreMultiplier);
+        showSuccess({
+          title: 'Partially Correct!',
+          message: `You got ${(scoreMultiplier * 100).toFixed(0)}% credit. The full answer is: ${correctAnswer}`
+        });
+        proceedToNextQuestion();
+      };
       
-      // Clear the input and proceed to next question
-      setStudentAnswer('');
-      proceedToNextQuestion();
+      const handleIncorrectAnswer = (correctAnswer) => {
+        showError({
+          title: 'Incorrect',
+          message: `The correct answer is: ${correctAnswer}. Try to review this topic.`
+        });
+        proceedToNextQuestion();
+      };
       
+      checkAnswer();
     } catch (error) {
       console.error('Error grading short answer:', error);
-      showSuccess('Error grading your answer. Please try again.');
+      showError({
+        title: 'Error',
+        message: 'Error grading your answer. Please try again.'
+      });
     } finally {
       setIsGrading(false);
     }

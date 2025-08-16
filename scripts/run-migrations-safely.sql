@@ -1,0 +1,2 @@
+-- Safe Migration Runner for ZedQuiz
+-- Run this script in your Supab

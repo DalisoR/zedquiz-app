@@ -12,18 +12,34 @@ function ChildConnectionRequests({ user }) {
         const fetchRequests = async () => {
             setLoading(true);
             try {
-                const { data, error } = await supabase
+                // Fetch relationships first
+                const { data: rels, error: relsError } = await supabase
                     .from('parent_child_relationships')
-                    .select(`
-                        id,
-                        status,
-                        parent:profiles!parent_id ( id, full_name, email )
-                    `)
+                    .select('id, status, parent_id')
                     .eq('child_id', user.id)
                     .eq('status', 'pending');
 
-                if (error) throw error;
-                setRequests(data || []);
+                if (relsError) throw relsError;
+
+                // Fetch parent profiles in a separate query
+                const parentIds = (rels || []).map(r => r.parent_id).filter(Boolean);
+                let parentsById = {};
+                if (parentIds.length > 0) {
+                    const { data: parents, error: parentsError } = await supabase
+                        .from('profiles')
+                        .select('id, full_name, email')
+                        .in('id', parentIds);
+
+                    if (parentsError) throw parentsError;
+                    parentsById = Object.fromEntries(parents.map(p => [p.id, p]));
+                }
+
+                // Compose final requests with parent info
+                setRequests((rels || []).map(r => ({
+                    id: r.id,
+                    status: r.status,
+                    parent: parentsById[r.parent_id] || { id: r.parent_id, full_name: null, email: '' }
+                })));
             } catch (error) {
                 showError('Could not fetch connection requests.');
                 console.error('Error fetching requests:', error);
@@ -31,8 +47,13 @@ function ChildConnectionRequests({ user }) {
             setLoading(false);
         };
 
-        fetchRequests();
-    }, [user.id, showError]);
+        if (user && user.id) {
+            fetchRequests();
+        } else {
+            setRequests([]);
+            setLoading(false);
+        }
+    }, [user && user.id, showError]);
 
     const handleRequest = async (requestId, newStatus) => {
         try {

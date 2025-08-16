@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { initAnalytics, trackPageView, trackLogin } from './utils/analytics';
@@ -6,39 +6,44 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './components/ui/Toast';
 import { GamificationProvider } from './contexts/GamificationContext';
 import { MonetizationProvider } from './contexts/MonetizationContext';
-import LandingPage from './components/LandingPage';
-import SubscriptionPlans from './components/monetization/SubscriptionPlans';
-import InAppPurchases from './components/monetization/InAppPurchases';
-import AffiliateProgram from './components/monetization/AffiliateProgram';
-import AuthChoicePage from './components/AuthChoicePage';
-import LoginPage from './components/LoginPage';
-import RegistrationPage from './components/RegistrationPage';
-import StudentDashboard from './components/StudentDashboard';
-import SubjectSelectionPage from './components/SubjectSelectionPage';
-import QuizPage from './components/QuizPage';
-import TeacherDashboard from './components/TeacherDashboard';
-import CreateQuizPage from './components/CreateQuizPage';
-import AddQuestionsPage from './components/AddQuestionsPage';
-import LeaderboardPage from './components/LeaderboardPage';
-import UpgradePage from './components/UpgradePage';
-import TutorApplicationPage from './components/TutorApplicationPage';
 import ErrorBoundary from './components/ErrorBoundary';
-import SuperAdminDashboard from './components/SuperAdminDashboard';
-import ApplicationReviewPage from './components/ApplicationReviewPage';
-import ManageQuizzesPage from './components/ManageQuizzesPage';
-import TeacherProfilePage from './components/TeacherProfilePage';
-import BrowseTeachersPage from './components/BrowseTeachersPage';
-import TeacherPublicProfilePage from './components/TeacherPublicProfilePage';
-import TeacherAvailabilityPage from './components/TeacherAvailabilityPage';
-import BookingPage from './components/BookingPage';
-import TeacherBookingsPage from './components/TeacherBookingsPage'; // Import new
-import TeacherEarningsDashboard from './components/monetization/TeacherEarningsDashboard';
-import ParentDashboard from './components/ParentDashboard';
+import { SkeletonCard } from './components/ui/Skeleton';
+import { TopNav, BottomNav } from './components/ui/Navigation';
 
 import './App.css';
 
+const LandingPage = lazy(() => import('./components/LandingPage'));
+const SubscriptionPlans = lazy(() => import('./components/monetization/SubscriptionPlans'));
+const InAppPurchases = lazy(() => import('./components/monetization/InAppPurchases'));
+const AffiliateProgram = lazy(() => import('./components/monetization/AffiliateProgram'));
+const AuthChoicePage = lazy(() => import('./components/AuthChoicePage'));
+const LoginPage = lazy(() => import('./components/LoginPage'));
+const RegistrationPage = lazy(() => import('./components/RegistrationPage'));
+const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
+const SubjectSelectionPage = lazy(() => import('./components/SubjectSelectionPage'));
+const QuizPage = lazy(() => import('./components/QuizPage'));
+const TeacherDashboard = lazy(() => import('./components/TeacherDashboard'));
+const CreateQuizPage = lazy(() => import('./components/CreateQuizPage'));
+const AddQuestionsPage = lazy(() => import('./components/AddQuestionsPage'));
+const LeaderboardPage = lazy(() => import('./components/LeaderboardPage'));
+const UpgradePage = lazy(() => import('./components/UpgradePage'));
+const TutorApplicationPage = lazy(() => import('./components/TutorApplicationPage'));
+const SuperAdminDashboard = lazy(() => import('./components/SuperAdminDashboard'));
+const ApplicationReviewPage = lazy(() => import('./components/ApplicationReviewPage'));
+const ManageQuizzesPage = lazy(() => import('./components/ManageQuizzesPage'));
+const TeacherProfilePage = lazy(() => import('./components/TeacherProfilePage'));
+const BrowseTeachersPage = lazy(() => import('./components/BrowseTeachersPage'));
+const TeacherPublicProfilePage = lazy(() => import('./components/TeacherPublicProfilePage'));
+const TeacherAvailabilityPage = lazy(() => import('./components/TeacherAvailabilityPage'));
+const BookingPage = lazy(() => import('./components/BookingPage'));
+const TeacherBookingsPage = lazy(() => import('./components/TeacherBookingsPage'));
+const TeacherEarningsDashboard = lazy(() => import('./components/monetization/TeacherEarningsDashboard'));
+const ParentDashboard = lazy(() => import('./components/ParentDashboard'));
+const PaymentStatusPage = lazy(() => import('./components/PaymentStatusPage'));
+
 function App() {
   const [page, setPage] = useState('landing');
+  const [history, setHistory] = useState([]); // simple stack of previous pages
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
@@ -53,14 +58,14 @@ function App() {
 
   // Track page views
   useEffect(() => {
-    trackPageView(window.location.pathname);
+    trackPageView(window.location.pathname + '#' + page);
   }, [page]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        trackLogin('email'); // Track initial login if session exists
+        trackLogin('email');
       }
     });
 
@@ -68,6 +73,7 @@ function App() {
       setSession(session);
       if (!session) {
         setProfile(null);
+        setHistory([]);
         setPage('landing');
       } else if (_event === 'SIGNED_IN') {
         trackLogin('email');
@@ -88,9 +94,9 @@ function App() {
         if (error && status !== 406) throw error;
         if (data) {
           setProfile(data);
-          if (data.role === 'super-admin') setPage('super-admin');
-          else if (data.role === 'teacher') setPage('teacher-dashboard');
-          else setPage('dashboard');
+          if (data.role === 'super-admin') navigate('super-admin');
+          else if (data.role === 'teacher') navigate('teacher-dashboard');
+          else navigate('dashboard');
         }
       } catch (error) {
         console.error('Error fetching profile:', error.message);
@@ -99,68 +105,121 @@ function App() {
     if (session) fetchProfile();
   }, [session]);
 
+  const getHomePage = () => {
+    if (profile?.role === 'super-admin') return 'super-admin';
+    if (profile?.role === 'teacher') return 'teacher-dashboard';
+    if (profile) return 'dashboard';
+    return 'landing';
+  };
+
+  // Centralized navigation to track history for Back button
+  const navigate = (nextPage) => {
+    setHistory((h) => (page ? [...h, page] : h));
+    setPage(nextPage);
+  };
+
+  const goBack = () => {
+    setHistory((h) => {
+      if (!h.length) {
+        setPage(getHomePage());
+        return h;
+      }
+      const prev = h[h.length - 1];
+      setPage(prev);
+      return h.slice(0, -1);
+    });
+  };
+
+  const onHome = () => {
+    setHistory([]);
+    setPage(getHomePage());
+  };
+
   const renderPage = () => {
     if (session && profile) {
       const currentUser = { ...session.user, ...profile };
       if (profile.role === 'super-admin') {
         switch (page) {
-            case 'super-admin': return <SuperAdminDashboard setPage={setPage} setSelectedApplication={setSelectedApplication} />;
-            case 'review-application': return <ApplicationReviewPage application={selectedApplication} setPage={setPage} />;
-            default: return <SuperAdminDashboard setPage={setPage} setSelectedApplication={setSelectedApplication} />;
+          case 'super-admin': return <SuperAdminDashboard setPage={navigate} setSelectedApplication={setSelectedApplication} />;
+          case 'review-application': return <ApplicationReviewPage application={selectedApplication} setPage={navigate} />;
+          default: return <SuperAdminDashboard setPage={navigate} setSelectedApplication={setSelectedApplication} />;
         }
       } else if (profile.role === 'teacher') {
         switch (page) {
-          case 'teacher-dashboard': return <TeacherDashboard currentUser={currentUser} setPage={setPage} />;
-          case 'create-quiz': return <CreateQuizPage currentUser={currentUser} setPage={setPage} setSelectedQuiz={setSelectedQuiz} />;
-          case 'add-questions': return <AddQuestionsPage selectedQuiz={selectedQuiz} setPage={setPage} />;
-          case 'manage-quizzes': return <ManageQuizzesPage currentUser={currentUser} setPage={setPage} setSelectedQuiz={setSelectedQuiz} />;
-          case 'teacher-profile': return <TeacherProfilePage currentUser={currentUser} setPage={setPage} />;
-          case 'teacher-availability': return <TeacherAvailabilityPage currentUser={currentUser} setPage={setPage} />;
-                    case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={setPage} />; // Add new route
-          case 'teacher-earnings-dashboard': return <TeacherEarningsDashboard currentUser={currentUser} setPage={setPage} />;
-          default: return <TeacherDashboard currentUser={currentUser} setPage={setPage} />;
+          case 'teacher-dashboard': return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'create-quiz': return <CreateQuizPage currentUser={currentUser} setPage={navigate} setSelectedQuiz={setSelectedQuiz} />;
+          case 'add-questions': return <AddQuestionsPage selectedQuiz={selectedQuiz} setPage={navigate} />;
+          case 'manage-quizzes': return <ManageQuizzesPage currentUser={currentUser} setPage={navigate} setSelectedQuiz={setSelectedQuiz} />;
+          case 'teacher-profile': return <TeacherProfilePage currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-availability': return <TeacherAvailabilityPage currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-earnings-dashboard': return <TeacherEarningsDashboard currentUser={currentUser} setPage={navigate} />;
+          default: return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
         }
       } else { // Student role
         switch (page) {
-          case 'dashboard': return <StudentDashboard currentUser={currentUser} setPage={setPage} />;
-          case 'select-subject': return <SubjectSelectionPage currentUser={currentUser} setPage={setPage} setSelectedSubject={setSelectedSubject} />;
-          case 'quiz': return <QuizPage currentUser={currentUser} selectedSubject={selectedSubject} setPage={setPage} />;
-          case 'leaderboard': return <LeaderboardPage currentUser={currentUser} setPage={setPage} />;
-          case 'upgrade': return <UpgradePage currentUser={profile} setPage={setPage} />;
-          case 'subscriptions': return <SubscriptionPlans currentUser={profile} setPage={setPage} />;
-          case 'shop': return <InAppPurchases currentUser={profile} setPage={setPage} />;
-          case 'affiliate': return <AffiliateProgram currentUser={profile} setPage={setPage} />;
-          case 'tutor-application': return <TutorApplicationPage currentUser={profile} setPage={setPage} />;
-          case 'browse-teachers': return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
-          case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={setPage} />;
-          case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={setPage} />;
-          case 'parent-dashboard': return <ParentDashboard user={currentUser} setPage={setPage} />;
-          default: return <StudentDashboard currentUser={currentUser} setPage={setPage} />;
+          case 'dashboard': return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'select-subject': return <SubjectSelectionPage currentUser={currentUser} setPage={navigate} setSelectedSubject={setSelectedSubject} />;
+          case 'quiz': return <QuizPage currentUser={currentUser} selectedSubject={selectedSubject} setPage={navigate} />;
+          case 'leaderboard': return <LeaderboardPage currentUser={currentUser} setPage={navigate} />;
+          case 'upgrade': return <UpgradePage currentUser={currentUser} setPage={navigate} />;
+          case 'payment-status': return <PaymentStatusPage currentUser={currentUser} setPage={navigate} />;
+          case 'subscriptions': return <SubscriptionPlans currentUser={profile} setPage={navigate} />;
+          case 'shop': return <InAppPurchases currentUser={profile} setPage={navigate} />;
+          case 'affiliate': return <AffiliateProgram currentUser={profile} setPage={navigate} />;
+          case 'tutor-application': return <TutorApplicationPage currentUser={profile} setPage={navigate} />;
+          case 'browse-teachers': return <BrowseTeachersPage setPage={navigate} setSelectedTeacher={setSelectedTeacher} />;
+          case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={navigate} />;
+          case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={navigate} />;
+          case 'parent-dashboard': return <ParentDashboard user={currentUser} setPage={navigate} />;
+          default: return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
         }
       }
     } else { // Not logged in - Public Pages
       switch (page) {
         case 'browse-teachers':
-          return <BrowseTeachersPage setPage={setPage} setSelectedTeacher={setSelectedTeacher} />;
+          return <BrowseTeachersPage setPage={navigate} setSelectedTeacher={setSelectedTeacher} />;
         case 'teacher-public-profile':
-          return <TeacherPublicProfilePage teacher={selectedTeacher} setPage={setPage} />;
+          return <TeacherPublicProfilePage teacher={selectedTeacher} setPage={navigate} />;
         case 'tutor-application':
-          return <TutorApplicationPage setPage={setPage} />;
+          return <TutorApplicationPage setPage={navigate} />;
         case 'auth-choice':
-          return <AuthChoicePage setPage={setPage} />;
-        case 'login': return <LoginPage setPage={setPage} />;
-        case 'register': return <RegistrationPage setPage={setPage} />;
-        case 'landing': default: return <LandingPage setPage={setPage} />;
+          return <AuthChoicePage setPage={navigate} />;
+        case 'login': return <LoginPage setPage={navigate} />;
+        case 'register': return <RegistrationPage setPage={navigate} />;
+        case 'landing': default: return <LandingPage setPage={navigate} />;
       }
     }
   };
 
-  // Move the renderPage call inside the providers
-  const appContent = (
-    <div className="min-h-screen bg-gray-50">
-      {renderPage()}
-    </div>
-  );
+  const appTitle = (() => {
+    // Optional page title mapping for TopNav
+    const map = {
+      'landing': 'ZedQuiz',
+      'dashboard': 'Student Dashboard',
+      'teacher-dashboard': 'Teacher Dashboard',
+      'super-admin': 'Admin',
+      'browse-teachers': 'Browse Teachers',
+      'teacher-public-profile': 'Teacher Profile',
+      'booking': 'Book a Lesson',
+      'leaderboard': 'Leaderboard',
+      'upgrade': 'Upgrade',
+      'subscriptions': 'Subscriptions',
+      'shop': 'Shop',
+      'affiliate': 'Affiliate',
+      'tutor-application': 'Tutor Application',
+      'teacher-availability': 'Availability',
+      'teacher-bookings': 'Bookings',
+      'teacher-earnings-dashboard': 'Earnings',
+      'parent-dashboard': 'Parent Dashboard',
+      'create-quiz': 'Create Quiz',
+      'add-questions': 'Add Questions',
+      'manage-quizzes': 'Manage Quizzes',
+      'teacher-profile': 'My Profile',
+      'review-application': 'Review Application'
+    };
+    return map[page] || 'ZedQuiz';
+  })();
 
   return (
     <Router>
@@ -169,7 +228,22 @@ function App() {
           <ToastProvider autoClose={5000} position="top-right">
             <GamificationProvider>
               <MonetizationProvider>
-                {appContent}
+                {profile ? (
+                  <TopNav
+                    title={appTitle}
+                    canGoBack={history.length > 0}
+                    onBack={goBack}
+                    onHome={onHome}
+                  />
+                ) : null}
+                <div className="app-content" style={{ paddingBottom: profile ? 84 : 0 }}>
+                  <Suspense fallback={<SkeletonCard />}>
+                    {renderPage()}
+                  </Suspense>
+                </div>
+                {profile ? (
+                  <BottomNav role={profile.role} navigate={navigate} />
+                ) : null}
               </MonetizationProvider>
             </GamificationProvider>
           </ToastProvider>

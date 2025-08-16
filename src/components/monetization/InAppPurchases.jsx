@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMonetization } from '../../contexts/MonetizationContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { FiCheck, FiShoppingCart, FiCreditCard, FiShield, FiArrowRight } from 'react-icons/fi';
 
 const productCategories = [
@@ -14,7 +14,7 @@ const productCategories = [
 const InAppPurchases = ({ currentUser, setPage }) => {
   const { products = [], isLoading } = useMonetization();
   const { user } = useAuth?.() || {}; // Handle case where auth might not be available
-  const navigate = useNavigate();
+  const history = useHistory();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isPurchasing, setIsPurchasing] = useState({});
   const [error, setError] = useState('');
@@ -29,7 +29,8 @@ const InAppPurchases = ({ currentUser, setPage }) => {
   const handlePurchase = async (product) => {
     if (!activeUser) {
       // Redirect to login if no user is available
-      setPage?.('login') || navigate('/login', { state: { from: '/shop' } });
+      setPage?.('login');
+      history.push('/login', { state: { from: '/shop' } });
       return;
     }
 

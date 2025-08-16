@@ -48,15 +48,39 @@ ALTER TABLE user_points ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_badges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE point_transactions ENABLE ROW LEVEL SECURITY;
 
--- Create RLS policies
-CREATE POLICY "Users can view their own points" 
-ON user_points FOR SELECT 
-USING (auth.uid() = user_id);
+-- Create RLS policies (with IF NOT EXISTS equivalent)
+DO $$ 
+BEGIN
+    -- Policy for user_points
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'user_points' 
+        AND policyname = 'Users can view their own points'
+    ) THEN
+        CREATE POLICY "Users can view their own points" 
+        ON user_points FOR SELECT 
+        USING (auth.uid() = user_id);
+    END IF;
 
-CREATE POLICY "Users can view their own badges" 
-ON user_badges FOR SELECT 
-USING (auth.uid() = user_id);
+    -- Policy for user_badges
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'user_badges' 
+        AND policyname = 'Users can view their own badges'
+    ) THEN
+        CREATE POLICY "Users can view their own badges" 
+        ON user_badges FOR SELECT 
+        USING (auth.uid() = user_id);
+    END IF;
 
-CREATE POLICY "Users can view their own point transactions" 
-ON point_transactions FOR SELECT 
-USING (auth.uid() = user_id);
+    -- Policy for point_transactions
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE tablename = 'point_transactions' 
+        AND policyname = 'Users can view their own point transactions'
+    ) THEN
+        CREATE POLICY "Users can view their own point transactions" 
+        ON point_transactions FOR SELECT 
+        USING (auth.uid() = user_id);
+    END IF;
+END $$;

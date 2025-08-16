@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useMonetization } from '../../contexts/MonetizationContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { 
   FiCopy, 
   FiExternalLink, 
@@ -15,7 +15,7 @@ import {
 const AffiliateProgram = ({ currentUser, setPage }) => {
   const { isAffiliate = false, affiliateInfo = {}, referrals = [], isLoading } = useMonetization();
   const { user } = useAuth?.() || {}; // Handle case where auth might not be available
-  const navigate = useNavigate();
+  const history = useHistory();
   const [isSigningUp, setIsSigningUp] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState('');
@@ -46,7 +46,8 @@ const AffiliateProgram = ({ currentUser, setPage }) => {
   const handleSignUp = async () => {
     if (!activeUser) {
       // Redirect to login if no user is available
-      setPage?.('login') || navigate('/login', { state: { from: '/affiliate' } });
+      setPage?.('login');
+      history.push('/login', { state: { from: '/affiliate' } });
       return;
     }
     

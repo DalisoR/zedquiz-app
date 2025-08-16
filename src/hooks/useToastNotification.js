@@ -25,14 +25,12 @@ export const useToastNotification = () => {
     action, 
     className = '' 
   } = {}) => {
-    return addToast({
-      message,
+    return addToast(message, {
       type: 'success',
       title,
       duration,
       action,
-      className,
-      disableAutoClose: duration === false
+      className
     });
   }, [addToast]);
 
@@ -70,14 +68,12 @@ export const useToastNotification = () => {
       </button>
     ) : undefined;
 
-    return addToast({
-      message: errorMessage,
+    return addToast(errorMessage, {
       type: 'error',
       title: title || 'Something went wrong',
       duration,
       action: action || reportAction,
-      className,
-      disableAutoClose: duration === false
+      className
     });
   }, [addToast]);
 
@@ -97,14 +93,12 @@ export const useToastNotification = () => {
     action, 
     className = '' 
   } = {}) => {
-    return addToast({
-      message,
+    return addToast(message, {
       type: 'info',
       title,
       duration,
       action,
-      className,
-      disableAutoClose: duration === false
+      className
     });
   }, [addToast]);
 
@@ -124,14 +118,12 @@ export const useToastNotification = () => {
     action, 
     className = '' 
   } = {}) => {
-    return addToast({
-      message,
+    return addToast(message, {
       type: 'warning',
       title,
       duration,
       action,
-      className,
-      disableAutoClose: duration === false
+      className
     });
   }, [addToast]);
 

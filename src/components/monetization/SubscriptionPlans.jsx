@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMonetization } from '../../contexts/MonetizationContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { FiCheck, FiZap, FiAward, FiStar, FiArrowRight } from 'react-icons/fi';
 
 const SubscriptionPlans = ({ currentUser, setPage }) => {
@@ -18,7 +18,7 @@ const SubscriptionPlans = ({ currentUser, setPage }) => {
   const [billingCycle, setBillingCycle] = useState('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const history = useHistory();
 
   useEffect(() => {
     // If currentUser is passed as prop, use it as fallback
@@ -31,7 +31,8 @@ const SubscriptionPlans = ({ currentUser, setPage }) => {
   const handleSubscribe = async (plan) => {
     if (!user && !currentUser) {
       // Redirect to login if no user is available
-      setPage?.('login') || navigate('/login', { state: { from: '/subscriptions' } });
+      setPage?.('login')
+      history.push('/login', { state: { from: '/subscriptions' } });
       return;
     }
 

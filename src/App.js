@@ -1,5 +1,4 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import { initAnalytics, trackPageView, trackLogin } from './utils/analytics';
 import { AuthProvider } from './contexts/AuthContext';
@@ -40,6 +39,7 @@ const TeacherBookingsPage = lazy(() => import('./components/TeacherBookingsPage'
 const TeacherEarningsDashboard = lazy(() => import('./components/monetization/TeacherEarningsDashboard'));
 const ParentDashboard = lazy(() => import('./components/ParentDashboard'));
 const PaymentStatusPage = lazy(() => import('./components/PaymentStatusPage'));
+const InsertSampleQuestionPage = lazy(() => import('./components/InsertSampleQuestionPage'));
 
 function App() {
   const [page, setPage] = useState('landing');
@@ -154,6 +154,7 @@ function App() {
           case 'teacher-availability': return <TeacherAvailabilityPage currentUser={currentUser} setPage={navigate} />;
           case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={navigate} />;
           case 'teacher-earnings-dashboard': return <TeacherEarningsDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'insert-sample-question': return <InsertSampleQuestionPage currentUser={currentUser} setPage={navigate} />;
           default: return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
         }
       } else { // Student role
@@ -222,34 +223,32 @@ function App() {
   })();
 
   return (
-    <Router>
-      <ErrorBoundary>
-        <AuthProvider>
-          <ToastProvider autoClose={5000} position="top-right">
-            <GamificationProvider>
-              <MonetizationProvider>
-                {profile ? (
-                  <TopNav
-                    title={appTitle}
-                    canGoBack={history.length > 0}
-                    onBack={goBack}
-                    onHome={onHome}
-                  />
-                ) : null}
-                <div className="app-content" style={{ paddingBottom: profile ? 84 : 0 }}>
-                  <Suspense fallback={<SkeletonCard />}>
-                    {renderPage()}
-                  </Suspense>
-                </div>
-                {profile ? (
-                  <BottomNav role={profile.role} navigate={navigate} />
-                ) : null}
-              </MonetizationProvider>
-            </GamificationProvider>
-          </ToastProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </Router>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider autoClose={5000} position="top-right">
+          <GamificationProvider>
+            <MonetizationProvider>
+              {profile ? (
+                <TopNav
+                  title={appTitle}
+                  canGoBack={history.length > 0}
+                  onBack={goBack}
+                  onHome={onHome}
+                />
+              ) : null}
+              <div className="app-content" style={{ paddingBottom: profile ? 84 : 0 }}>
+                <Suspense fallback={<SkeletonCard />}>
+                  {renderPage()}
+                </Suspense>
+              </div>
+              {profile ? (
+                <BottomNav role={profile.role} navigate={navigate} />
+              ) : null}
+            </MonetizationProvider>
+          </GamificationProvider>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

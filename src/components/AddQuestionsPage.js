@@ -34,15 +34,20 @@ function AddQuestionsPage({ selectedQuiz, setPage }) {
     if (imageFile) {
         setUploading(true);
         const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const fileName = `${selectedQuiz.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+        const filePath = fileName;
 
         const { error: uploadError } = await supabase.storage
             .from('question_images')
-            .upload(filePath, imageFile);
+            .upload(filePath, imageFile, { cacheControl: '3600', upsert: true, contentType: imageFile.type || 'application/octet-stream' });
 
         if (uploadError) {
-            alert('Error uploading image: ' + uploadError.message);
+            const msg = uploadError.message || '';
+            if (msg === 'Failed to fetch') {
+                alert('Error uploading image: Network/CORS error. Ensure the storage bucket "question_images" exists and that you are online.');
+            } else {
+                alert('Error uploading image: ' + msg);
+            }
             setLoading(false);
             setUploading(false);
             return;

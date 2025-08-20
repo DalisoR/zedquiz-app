@@ -7,12 +7,14 @@ The migrations must be run in the correct order because they have dependencies o
 ## 🔢 Correct Migration Order
 
 ### Step 1: Payment System (Required First)
+
 ```sql
 -- Run this first: 005_payments_subscriptions_final.sql
 -- This creates: payments, subscriptions, subscription_usage, payment_webhooks tables
 ```
 
 ### Step 2: Revenue Analytics (Depends on Step 1)
+
 ```sql
 -- Run this second: 006_revenue_analytics.sql
 -- This creates analytics tables that reference the subscription tables
@@ -21,6 +23,7 @@ The migrations must be run in the correct order because they have dependencies o
 ## 🚨 Current Issue
 
 You're getting the error:
+
 ```
 ERROR: 42P01: relation "subscriptions" does not exist
 ```
@@ -30,7 +33,9 @@ This means you tried to run the analytics migration before the payment system mi
 ## ✅ Solution
 
 ### Option A: Run Payment Migration First
+
 1. **Run Payment System Migration**
+
    ```sql
    -- Copy and paste contents of: 005_payments_subscriptions_final.sql
    -- Execute in Supabase SQL Editor
@@ -43,6 +48,7 @@ This means you tried to run the analytics migration before the payment system mi
    ```
 
 ### Option B: Combined Migration (Easier)
+
 I'll create a combined migration that includes both systems in the correct order.
 
 ## 📋 Migration Dependencies
@@ -64,9 +70,10 @@ I'll create a combined migration that includes both systems in the correct order
 ## 🎯 Next Steps
 
 1. **Check which tables exist:**
+
    ```sql
-   SELECT table_name FROM information_schema.tables 
-   WHERE table_schema = 'public' 
+   SELECT table_name FROM information_schema.tables
+   WHERE table_schema = 'public'
    AND table_name IN ('payments', 'subscriptions', 'subscription_usage');
    ```
 

@@ -48,10 +48,12 @@ function InsertSampleQuestionPage({ currentUser, setPage }) {
         if (!quiz) throw new Error('Quiz not available after create/fetch.');
 
         // 2) Insert question if not already present
-        const question_text = 'When magnesium ribbon reacts with dilute hydrochloric acid, what gas is produced?';
+        const question_text =
+          'When magnesium ribbon reacts with dilute hydrochloric acid, what gas is produced?';
         const question_type = 'Short-Answer';
         const correct_answer = 'Hydrogen';
-        const explanation = 'Metals like magnesium react with dilute acids to form a salt and hydrogen gas. Balanced equation: Mg + 2HCl → MgCl2 + H2.';
+        const explanation =
+          'Metals like magnesium react with dilute acids to form a salt and hydrogen gas. Balanced equation: Mg + 2HCl → MgCl2 + H2.';
 
         setMessage('Checking for existing question...');
         const { data: existingQ, error: qFetchError } = await supabase
@@ -74,7 +76,7 @@ function InsertSampleQuestionPage({ currentUser, setPage }) {
             options: null,
             correct_answer,
             explanation,
-            image_url: null,
+            image_url: null
           };
           const { error: insertQError } = await supabase.from('questions').insert(payload);
           if (insertQError) throw insertQError;
@@ -91,24 +93,34 @@ function InsertSampleQuestionPage({ currentUser, setPage }) {
     };
 
     run();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [currentUser]);
 
   return (
-    <div className="main-container">
-      <header className="main-header admin-header">
+    <div className='main-container'>
+      <header className='main-header admin-header'>
         <h2>Insert Sample Question</h2>
-        <button className="back-button" onClick={() => setPage('manage-quizzes')}>Back</button>
+        <button className='back-button' onClick={() => setPage('manage-quizzes')}>
+          Back
+        </button>
       </header>
-      <div className="content-body">
-        <div className="card" style={{ textAlign: 'center' }}>
+      <div className='content-body'>
+        <div className='card' style={{ textAlign: 'center' }}>
           <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
             {loading ? 'Working…' : 'Done'}
           </div>
           <p style={{ color: '#6b7280' }}>{message}</p>
           {!loading && (
             <div style={{ marginTop: '1rem' }}>
-              <button type="button" onClick={() => setPage('manage-quizzes')} style={{ width: 'auto' }}>Go to My Quizzes</button>
+              <button
+                type='button'
+                onClick={() => setPage('manage-quizzes')}
+                style={{ width: 'auto' }}
+              >
+                Go to My Quizzes
+              </button>
             </div>
           )}
         </div>

@@ -25,10 +25,10 @@ export const useFormValidation = (initialState, validate) => {
     }
   }, [errors, isSubmitting, values]);
 
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value, files } = e.target;
     const newValue = files ? files[0] : value;
-    
+
     setValues({
       ...values,
       [name]: newValue
@@ -43,20 +43,20 @@ export const useFormValidation = (initialState, validate) => {
     }
   };
 
-  const handleBlur = (e) => {
+  const handleBlur = e => {
     const { name } = e.target;
     setTouched({
       ...touched,
       [name]: true
     });
-    
+
     // Validate the field that lost focus
     validateField(name, values[name]);
   };
 
   const validateField = (fieldName, value) => {
     let error = '';
-    
+
     switch (fieldName) {
       case 'email':
         error = validateEmail(value);
@@ -117,10 +117,10 @@ export const useFormValidation = (initialState, validate) => {
     return isValid;
   };
 
-  const handleSubmit = (onSubmit) => (e) => {
+  const handleSubmit = onSubmit => e => {
     e.preventDefault();
     setSubmitting(true);
-    
+
     if (validateForm()) {
       onSubmit(values);
     } else {

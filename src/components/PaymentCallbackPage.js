@@ -28,7 +28,7 @@ function PaymentCallbackPage({ currentUser, setPage }) {
 
       // Check payment status with PesaPal
       const statusResult = await pesapalService.checkTransactionStatus(orderTrackingId);
-      
+
       if (!statusResult.success) {
         throw new Error(statusResult.error);
       }
@@ -99,20 +99,18 @@ function PaymentCallbackPage({ currentUser, setPage }) {
         }
 
         // Create subscription record
-        await supabase
-          .from('subscriptions')
-          .insert({
-            user_id: currentUser.id,
-            plan_id: paymentRecord.plan_id,
-            status: 'active',
-            billing_cycle: paymentRecord.billing_cycle,
-            amount: paymentRecord.amount,
-            currency: paymentRecord.currency,
-            payment_method: 'pesapal',
-            start_date: new Date().toISOString(),
-            end_date: subscriptionEndDate.toISOString(),
-            payment_id: paymentRecord.id
-          });
+        await supabase.from('subscriptions').insert({
+          user_id: currentUser.id,
+          plan_id: paymentRecord.plan_id,
+          status: 'active',
+          billing_cycle: paymentRecord.billing_cycle,
+          amount: paymentRecord.amount,
+          currency: paymentRecord.currency,
+          payment_method: 'pesapal',
+          start_date: new Date().toISOString(),
+          end_date: subscriptionEndDate.toISOString(),
+          payment_id: paymentRecord.id
+        });
       }
 
       setPaymentStatus(newStatus);
@@ -133,7 +131,6 @@ function PaymentCallbackPage({ currentUser, setPage }) {
       } else if (isFailed) {
         showError('Payment failed. Please try again or contact support.');
       }
-
     } catch (err) {
       console.error('Payment callback error:', err);
       setError(err.message || 'Failed to process payment callback');
@@ -153,14 +150,12 @@ function PaymentCallbackPage({ currentUser, setPage }) {
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <div style={{ textAlign: 'center', padding: '3rem' }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>⏳</div>
             <h3>Verifying Payment...</h3>
-            <p style={{ color: '#666' }}>
-              Please wait while we confirm your payment with PesaPal.
-            </p>
+            <p style={{ color: '#666' }}>Please wait while we confirm your payment with PesaPal.</p>
           </div>
         </div>
       </div>
@@ -169,8 +164,8 @@ function PaymentCallbackPage({ currentUser, setPage }) {
 
   if (error) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <div style={{ textAlign: 'center', padding: '3rem' }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
             <h3>Payment Verification Failed</h3>
@@ -179,7 +174,10 @@ function PaymentCallbackPage({ currentUser, setPage }) {
               <button onClick={() => setPage('subscriptions')} style={{ width: 'auto' }}>
                 Back to Plans
               </button>
-              <button onClick={() => setPage('dashboard')} style={{ width: 'auto', background: '#6b7280' }}>
+              <button
+                onClick={() => setPage('dashboard')}
+                style={{ width: 'auto', background: '#6b7280' }}
+              >
                 Go to Dashboard
               </button>
             </div>
@@ -190,13 +188,13 @@ function PaymentCallbackPage({ currentUser, setPage }) {
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Payment Status</h2>
       </header>
 
-      <div className="content-body">
-        <div className="card">
+      <div className='content-body'>
+        <div className='card'>
           <div style={{ textAlign: 'center', padding: '2rem' }}>
             {paymentStatus === 'completed' && (
               <>
@@ -230,12 +228,14 @@ function PaymentCallbackPage({ currentUser, setPage }) {
           </div>
 
           {paymentDetails && (
-            <div style={{ 
-              background: '#f9fafb', 
-              padding: '1.5rem', 
-              borderRadius: '8px',
-              marginBottom: '2rem'
-            }}>
+            <div
+              style={{
+                background: '#f9fafb',
+                padding: '1.5rem',
+                borderRadius: '8px',
+                marginBottom: '2rem'
+              }}
+            >
               <h4 style={{ margin: '0 0 1rem 0' }}>Payment Details</h4>
               <div style={{ display: 'grid', gap: '0.5rem', fontSize: '0.875rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -291,26 +291,29 @@ function PaymentCallbackPage({ currentUser, setPage }) {
           </div>
 
           {paymentStatus === 'completed' && (
-            <div style={{ 
-              marginTop: '2rem', 
-              padding: '1rem', 
-              background: '#e8f5e9', 
-              borderRadius: '8px',
-              textAlign: 'center'
-            }}>
+            <div
+              style={{
+                marginTop: '2rem',
+                padding: '1rem',
+                background: '#e8f5e9',
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}
+            >
               <p style={{ margin: 0, color: '#2e7d32', fontSize: '0.875rem' }}>
-                🎉 Welcome to ZedQuiz {paymentDetails?.planName}! 
-                You now have access to all premium features.
+                🎉 Welcome to ZedQuiz {paymentDetails?.planName}! You now have access to all premium
+                features.
               </p>
             </div>
           )}
         </div>
 
         {/* Support Information */}
-        <div className="card">
+        <div className='card'>
           <h3>Need Help?</h3>
           <p style={{ margin: '0 0 1rem 0', color: '#666' }}>
-            If you have any questions about your payment or subscription, please contact our support team.
+            If you have any questions about your payment or subscription, please contact our support
+            team.
           </p>
           <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
             <div>

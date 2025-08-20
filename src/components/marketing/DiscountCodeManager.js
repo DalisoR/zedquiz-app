@@ -36,13 +36,15 @@ function DiscountCodeManager({ currentUser, setPage }) {
   const fetchDiscountCodes = async () => {
     try {
       setLoading(true);
-      
+
       let query = supabase
         .from('discount_codes')
-        .select(`
+        .select(
+          `
           *,
           discount_code_usage(count)
-        `)
+        `
+        )
         .order('created_at', { ascending: false });
 
       if (filter === 'active') {
@@ -60,11 +62,11 @@ function DiscountCodeManager({ currentUser, setPage }) {
       const { data, error } = await query;
 
       if (error) throw error;
-      
+
       let filteredData = data || [];
       if (filter === 'used_up') {
-        filteredData = filteredData.filter(code => 
-          code.usage_limit && code.current_usage >= code.usage_limit
+        filteredData = filteredData.filter(
+          code => code.usage_limit && code.current_usage >= code.usage_limit
         );
       }
 
@@ -86,9 +88,9 @@ function DiscountCodeManager({ currentUser, setPage }) {
     return result;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     try {
       const codeData = {
         ...formData,
@@ -107,14 +109,12 @@ function DiscountCodeManager({ currentUser, setPage }) {
           .from('discount_codes')
           .update(codeData)
           .eq('id', editingCode.id);
-        
+
         if (error) throw error;
         result = 'updated';
       } else {
-        const { error } = await supabase
-          .from('discount_codes')
-          .insert([codeData]);
-        
+        const { error } = await supabase.from('discount_codes').insert([codeData]);
+
         if (error) throw error;
         result = 'created';
       }
@@ -148,7 +148,7 @@ function DiscountCodeManager({ currentUser, setPage }) {
     });
   };
 
-  const handleEdit = (code) => {
+  const handleEdit = code => {
     setEditingCode(code);
     setFormData({
       code: code.code,
@@ -168,7 +168,7 @@ function DiscountCodeManager({ currentUser, setPage }) {
     setShowCreateModal(true);
   };
 
-  const handleToggleActive = async (code) => {
+  const handleToggleActive = async code => {
     try {
       const { error } = await supabase
         .from('discount_codes')
@@ -185,45 +185,45 @@ function DiscountCodeManager({ currentUser, setPage }) {
     }
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = amount => {
     return new Intl.NumberFormat('en-ZM', {
       style: 'currency',
       currency: 'ZMW'
     }).format(amount || 0);
   };
 
-  const getStatusColor = (code) => {
+  const getStatusColor = code => {
     if (!code.is_active) return '#6b7280';
-    
+
     const now = new Date();
     const validFrom = new Date(code.valid_from);
     const validUntil = code.valid_until ? new Date(code.valid_until) : null;
-    
+
     if (now < validFrom) return '#f59e0b'; // Not yet active
     if (validUntil && now > validUntil) return '#ef4444'; // Expired
     if (code.usage_limit && code.current_usage >= code.usage_limit) return '#ef4444'; // Used up
-    
+
     return '#10b981'; // Active
   };
 
-  const getStatusText = (code) => {
+  const getStatusText = code => {
     if (!code.is_active) return 'Inactive';
-    
+
     const now = new Date();
     const validFrom = new Date(code.valid_from);
     const validUntil = code.valid_until ? new Date(code.valid_until) : null;
-    
+
     if (now < validFrom) return 'Scheduled';
     if (validUntil && now > validUntil) return 'Expired';
     if (code.usage_limit && code.current_usage >= code.usage_limit) return 'Used Up';
-    
+
     return 'Active';
   };
 
   if (!currentUser || (currentUser.role !== 'super-admin' && currentUser.role !== 'admin')) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <h3>Access Denied</h3>
           <p>You don't have permission to manage discount codes.</p>
           <button onClick={() => setPage('dashboard')}>Back to Dashboard</button>
@@ -233,19 +233,19 @@ function DiscountCodeManager({ currentUser, setPage }) {
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Discount Code Manager</h2>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value)}
+            onChange={e => setFilter(e.target.value)}
             style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #e5e7eb' }}
           >
-            <option value="all">All Codes</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-            <option value="used_up">Used Up</option>
+            <option value='all'>All Codes</option>
+            <option value='active'>Active</option>
+            <option value='expired'>Expired</option>
+            <option value='used_up'>Used Up</option>
           </select>
           <button
             onClick={() => {
@@ -257,21 +257,21 @@ function DiscountCodeManager({ currentUser, setPage }) {
           >
             Create Code
           </button>
-          <button className="back-button" onClick={() => setPage('super-admin')}>
+          <button className='back-button' onClick={() => setPage('super-admin')}>
             Back to Admin
           </button>
         </div>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {loading ? (
-          <div className="card">
+          <div className='card'>
             <p>Loading discount codes...</p>
           </div>
         ) : (
-          <div className="card">
+          <div className='card'>
             <h3>Discount Codes ({discountCodes.length})</h3>
-            
+
             {discountCodes.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎫</div>
@@ -298,10 +298,12 @@ function DiscountCodeManager({ currentUser, setPage }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {discountCodes.map((code) => (
+                    {discountCodes.map(code => (
                       <tr key={code.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                         <td style={{ padding: '0.75rem' }}>
-                          <div style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '1rem' }}>
+                          <div
+                            style={{ fontFamily: 'monospace', fontWeight: 600, fontSize: '1rem' }}
+                          >
                             {code.code}
                           </div>
                           {code.campaign_name && (
@@ -320,10 +322,9 @@ function DiscountCodeManager({ currentUser, setPage }) {
                         </td>
                         <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                           <div style={{ fontWeight: 600 }}>
-                            {code.discount_type === 'percentage' 
+                            {code.discount_type === 'percentage'
                               ? `${code.discount_value}%`
-                              : formatCurrency(code.discount_value)
-                            }
+                              : formatCurrency(code.discount_value)}
                           </div>
                           {code.minimum_amount > 0 && (
                             <div style={{ fontSize: '0.75rem', color: '#666' }}>
@@ -347,7 +348,10 @@ function DiscountCodeManager({ currentUser, setPage }) {
                                 {new Date(code.valid_until).toLocaleDateString()}
                               </div>
                               <div style={{ fontSize: '0.75rem', color: '#666' }}>
-                                {Math.ceil((new Date(code.valid_until) - new Date()) / (1000 * 60 * 60 * 24))} days
+                                {Math.ceil(
+                                  (new Date(code.valid_until) - new Date()) / (1000 * 60 * 60 * 24)
+                                )}{' '}
+                                days
                               </div>
                             </div>
                           ) : (
@@ -406,48 +410,61 @@ function DiscountCodeManager({ currentUser, setPage }) {
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
             <h3 style={{ margin: '0 0 1.5rem 0' }}>
               {editingCode ? 'Edit Discount Code' : 'Create Discount Code'}
             </h3>
-            
+
             <form onSubmit={handleSubmit}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div className='form-group'>
                   <label>Code *</label>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <input
-                      type="text"
+                      type='text'
                       value={formData.code}
-                      onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
-                      placeholder="DISCOUNT20"
+                      onChange={e =>
+                        setFormData({ ...formData, code: e.target.value.toUpperCase() })
+                      }
+                      placeholder='DISCOUNT20'
                       required
                       style={{ flex: 1 }}
                     />
                     <button
-                      type="button"
-                      onClick={() => setFormData({...formData, code: generateRandomCode()})}
+                      type='button'
+                      onClick={() => setFormData({ ...formData, code: generateRandomCode() })}
                       style={{
                         width: 'auto',
                         padding: '0.5rem 1rem',
@@ -459,150 +476,175 @@ function DiscountCodeManager({ currentUser, setPage }) {
                     </button>
                   </div>
                 </div>
-                
-                <div className="form-group">
+
+                <div className='form-group'>
                   <label>Discount Type *</label>
                   <select
                     value={formData.discount_type}
-                    onChange={(e) => setFormData({...formData, discount_type: e.target.value})}
+                    onChange={e => setFormData({ ...formData, discount_type: e.target.value })}
                     required
                   >
-                    <option value="percentage">Percentage</option>
-                    <option value="fixed_amount">Fixed Amount</option>
-                    <option value="free_trial">Free Trial</option>
+                    <option value='percentage'>Percentage</option>
+                    <option value='fixed_amount'>Fixed Amount</option>
+                    <option value='free_trial'>Free Trial</option>
                   </select>
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Name *</label>
                 <input
-                  type="text"
+                  type='text'
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="20% Off Premium Plans"
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  placeholder='20% Off Premium Plans'
                   required
                 />
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Description</label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Limited time offer for new users"
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  placeholder='Limited time offer for new users'
                   rows={2}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div className='form-group'>
                   <label>
-                    Discount Value * 
-                    {formData.discount_type === 'percentage' ? '(%)' : '(ZMW)'}
+                    Discount Value *{formData.discount_type === 'percentage' ? '(%)' : '(ZMW)'}
                   </label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type='number'
+                    step='0.01'
+                    min='0'
                     max={formData.discount_type === 'percentage' ? '100' : undefined}
                     value={formData.discount_value}
-                    onChange={(e) => setFormData({...formData, discount_value: e.target.value})}
+                    onChange={e => setFormData({ ...formData, discount_value: e.target.value })}
                     required
                   />
                 </div>
 
                 {formData.discount_type === 'percentage' && (
-                  <div className="form-group">
+                  <div className='form-group'>
                     <label>Maximum Discount (ZMW)</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type='number'
+                      step='0.01'
+                      min='0'
                       value={formData.maximum_discount}
-                      onChange={(e) => setFormData({...formData, maximum_discount: e.target.value})}
-                      placeholder="Optional cap"
+                      onChange={e => setFormData({ ...formData, maximum_discount: e.target.value })}
+                      placeholder='Optional cap'
                     />
                   </div>
                 )}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div className='form-group'>
                   <label>Minimum Amount (ZMW)</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type='number'
+                    step='0.01'
+                    min='0'
                     value={formData.minimum_amount}
-                    onChange={(e) => setFormData({...formData, minimum_amount: e.target.value})}
-                    placeholder="0"
+                    onChange={e => setFormData({ ...formData, minimum_amount: e.target.value })}
+                    placeholder='0'
                   />
                 </div>
 
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Usage Limit Per User</label>
                   <input
-                    type="number"
-                    min="1"
+                    type='number'
+                    min='1'
                     value={formData.usage_limit_per_user}
-                    onChange={(e) => setFormData({...formData, usage_limit_per_user: parseInt(e.target.value)})}
+                    onChange={e =>
+                      setFormData({ ...formData, usage_limit_per_user: parseInt(e.target.value) })
+                    }
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div className='form-group'>
                   <label>Total Usage Limit</label>
                   <input
-                    type="number"
-                    min="1"
+                    type='number'
+                    min='1'
                     value={formData.usage_limit}
-                    onChange={(e) => setFormData({...formData, usage_limit: e.target.value})}
-                    placeholder="Unlimited"
+                    onChange={e => setFormData({ ...formData, usage_limit: e.target.value })}
+                    placeholder='Unlimited'
                   />
                 </div>
 
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Valid From *</label>
                   <input
-                    type="date"
+                    type='date'
                     value={formData.valid_from}
-                    onChange={(e) => setFormData({...formData, valid_from: e.target.value})}
+                    onChange={e => setFormData({ ...formData, valid_from: e.target.value })}
                     required
                   />
                 </div>
 
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Valid Until</label>
                   <input
-                    type="date"
+                    type='date'
                     value={formData.valid_until}
-                    onChange={(e) => setFormData({...formData, valid_until: e.target.value})}
+                    onChange={e => setFormData({ ...formData, valid_until: e.target.value })}
                     min={formData.valid_from}
                   />
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Campaign Name</label>
                 <input
-                  type="text"
+                  type='text'
                   value={formData.campaign_name}
-                  onChange={(e) => setFormData({...formData, campaign_name: e.target.value})}
-                  placeholder="Black Friday 2024"
+                  onChange={e => setFormData({ ...formData, campaign_name: e.target.value })}
+                  placeholder='Black Friday 2024'
                 />
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Applicable Plans</label>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   {['premium', 'pro'].map(plan => (
-                    <label key={plan} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <label
+                      key={plan}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
                       <input
-                        type="checkbox"
+                        type='checkbox'
                         checked={formData.applicable_plans.includes(plan)}
-                        onChange={(e) => {
+                        onChange={e => {
                           if (e.target.checked) {
                             setFormData({
                               ...formData,
@@ -622,9 +664,16 @@ function DiscountCodeManager({ currentUser, setPage }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'flex-end',
+                  marginTop: '2rem'
+                }}
+              >
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setShowCreateModal(false);
                     setEditingCode(null);
@@ -639,7 +688,7 @@ function DiscountCodeManager({ currentUser, setPage }) {
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type='submit'
                   style={{
                     width: 'auto',
                     padding: '0.75rem 1.5rem',

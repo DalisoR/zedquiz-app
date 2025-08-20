@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 // Custom hook for managing subscription limits and usage tracking
-export const useSubscriptionLimits = (currentUser) => {
+export const useSubscriptionLimits = currentUser => {
   const [subscription, setSubscription] = useState(null);
   const [usage, setUsage] = useState({});
   const [loading, setLoading] = useState(true);
 
   const planLimits = {
-    'free': {
+    free: {
       quiz_taken: 3,
       course_enrolled: 1,
       video_watched: 10,
@@ -16,7 +16,7 @@ export const useSubscriptionLimits = (currentUser) => {
       lesson_created: 0,
       quiz_created: 0
     },
-    'premium': {
+    premium: {
       quiz_taken: -1, // unlimited
       course_enrolled: -1,
       video_watched: -1,
@@ -24,7 +24,7 @@ export const useSubscriptionLimits = (currentUser) => {
       lesson_created: 0,
       quiz_created: 0
     },
-    'pro': {
+    pro: {
       quiz_taken: -1,
       course_enrolled: -1,
       video_watched: -1,
@@ -45,8 +45,10 @@ export const useSubscriptionLimits = (currentUser) => {
       setLoading(true);
 
       // Get subscription status
-      const { data: subscriptionStatus, error: statusError } = await supabase
-        .rpc('check_user_subscription', { p_user_id: currentUser.id });
+      const { data: subscriptionStatus, error: statusError } = await supabase.rpc(
+        'check_user_subscription',
+        { p_user_id: currentUser.id }
+      );
 
       if (statusError) throw statusError;
 
@@ -69,7 +71,6 @@ export const useSubscriptionLimits = (currentUser) => {
         });
       }
       setUsage(usageMap);
-
     } catch (err) {
       console.error('Error fetching subscription data:', err);
     } finally {
@@ -91,13 +92,12 @@ export const useSubscriptionLimits = (currentUser) => {
         ...prev,
         [usageType]: (prev[usageType] || 0) + count
       }));
-
     } catch (err) {
       console.error('Error recording usage:', err);
     }
   };
 
-  const checkLimit = (usageType) => {
+  const checkLimit = usageType => {
     const planId = subscription?.plan_id || 'free';
     const limit = planLimits[planId]?.[usageType] || 0;
     const currentUsage = usage[usageType] || 0;
@@ -112,37 +112,42 @@ export const useSubscriptionLimits = (currentUser) => {
     };
   };
 
-  const canPerformAction = (usageType) => {
+  const canPerformAction = usageType => {
     const limitCheck = checkLimit(usageType);
     return limitCheck.hasAccess;
   };
 
-  const getLimitMessage = (usageType) => {
+  const getLimitMessage = usageType => {
     const limitCheck = checkLimit(usageType);
     const planId = subscription?.plan_id || 'free';
-    
+
     if (limitCheck.isUnlimited) {
-      return `Unlimited ${usageType.replace('_', ' ')} with ${planLimits[planId]?.name || planId} plan`;
+      return `Unlimited ${usageType.replace('_', ' ')} with ${
+        planLimits[planId]?.name || planId
+      } plan`;
     }
-    
+
     if (!limitCheck.hasAccess) {
       return `Daily limit reached (${limitCheck.limit}). Upgrade to Premium for unlimited access.`;
     }
-    
+
     return `${limitCheck.remainingUsage} remaining today (${limitCheck.currentUsage}/${limitCheck.limit} used)`;
   };
 
-  const getUpgradeMessage = (usageType) => {
+  const getUpgradeMessage = usageType => {
     const planId = subscription?.plan_id || 'free';
-    
+
     if (planId === 'free') {
       return 'Upgrade to Premium or Pro for unlimited access';
     }
-    
-    if (planId === 'premium' && ['course_created', 'lesson_created', 'quiz_created'].includes(usageType)) {
+
+    if (
+      planId === 'premium' &&
+      ['course_created', 'lesson_created', 'quiz_created'].includes(usageType)
+    ) {
       return 'Upgrade to Pro to create unlimited courses and content';
     }
-    
+
     return null;
   };
 
@@ -168,11 +173,11 @@ export const useSubscriptionLimits = (currentUser) => {
 export const withUsageTracking = (WrappedComponent, usageType) => {
   return function UsageTrackedComponent(props) {
     const { recordUsage } = useSubscriptionLimits(props.currentUser);
-    
+
     const trackUsage = (metadata = {}) => {
       recordUsage(usageType, 1, metadata);
     };
-    
+
     return <WrappedComponent {...props} trackUsage={trackUsage} />;
   };
 };

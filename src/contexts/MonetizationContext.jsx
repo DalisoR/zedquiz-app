@@ -21,12 +21,10 @@ export const MonetizationProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAffiliate, setIsAffiliate] = useState(false);
   const [referrals, setReferrals] = useState([]);
-  
+
   // These will be provided by the AuthProvider and ToastProvider in App.js
   const { user } = {}; // This will be overridden by the actual AuthContext
   const addToast = (message, options) => console.log(message, options); // Default implementation
-
-
 
   // Fetch subscription plans
   const fetchSubscriptionPlans = useCallback(async () => {
@@ -48,7 +46,7 @@ export const MonetizationProvider = ({ children }) => {
   // Fetch user's subscription
   const fetchUserSubscription = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('user_subscriptions')
@@ -58,7 +56,7 @@ export const MonetizationProvider = ({ children }) => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
-      
+
       if (data) {
         // Get plan details
         const { data: planData } = await supabase
@@ -66,7 +64,7 @@ export const MonetizationProvider = ({ children }) => {
           .select('*')
           .eq('id', data.plan_id)
           .single();
-        
+
         setSubscription({
           ...data,
           plan: planData
@@ -83,10 +81,7 @@ export const MonetizationProvider = ({ children }) => {
   // Fetch products
   const fetchProducts = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('is_active', true);
+      const { data, error } = await supabase.from('products').select('*').eq('is_active', true);
 
       if (error) throw error;
       setProducts(data || []);
@@ -99,7 +94,7 @@ export const MonetizationProvider = ({ children }) => {
   // Fetch affiliate info
   const fetchAffiliateInfo = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       const { data, error } = await supabase
         .from('affiliates')
@@ -108,17 +103,17 @@ export const MonetizationProvider = ({ children }) => {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      
+
       if (data) {
         setIsAffiliate(true);
         setAffiliateInfo(data);
-        
+
         // Fetch referrals
         const { data: refData, error: refError } = await supabase
           .from('affiliate_referrals')
           .select('*, referred_user:referred_user_id(email, full_name)')
           .eq('affiliate_id', data.id);
-          
+
         if (!refError) {
           setReferrals(refData || []);
         }
@@ -155,14 +150,15 @@ export const MonetizationProvider = ({ children }) => {
 
     const subscription = supabase
       .channel('user_subscription_changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
           table: 'user_subscriptions',
           filter: `user_id=eq.${user.id}`
-        }, 
-        (payload) => {
+        },
+        payload => {
           if (payload.eventType === 'DELETE') {
             setSubscription(null);
           } else {
@@ -191,9 +187,8 @@ export const MonetizationProvider = ({ children }) => {
       if (!plan) throw new Error('Plan not found');
 
       // Create subscription in your database
-      const { data, error } = await supabase
-        .from('user_subscriptions')
-        .upsert({
+      const { data, error } = await supabase.from('user_subscriptions').upsert(
+        {
           user_id: user.id,
           plan_id: planId,
           status: 'active',
@@ -201,17 +196,19 @@ export const MonetizationProvider = ({ children }) => {
           current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
           stripe_customer_id: 'mock_customer_id', // Replace with actual Stripe customer ID
           stripe_subscription_id: 'mock_subscription_id' // Replace with actual Stripe subscription ID
-        }, {
+        },
+        {
           onConflict: 'user_id,status',
           returning: 'representation'
-        });
+        }
+      );
 
       if (error) throw error;
 
       // Update local state
       await fetchUserSubscription();
       addToast(`Successfully subscribed to ${plan.name}`, { type: 'success' });
-      
+
       return { success: true };
     } catch (error) {
       console.error('Subscription error:', error);
@@ -249,10 +246,10 @@ export const MonetizationProvider = ({ children }) => {
       if (error) throw error;
 
       addToast(`Successfully purchased ${product.name}`, { type: 'success' });
-      
+
       // Refresh products in case of limited quantity
       await fetchProducts();
-      
+
       return { success: true, purchase: data };
     } catch (error) {
       console.error('Purchase error:', error);
@@ -274,14 +271,16 @@ export const MonetizationProvider = ({ children }) => {
 
     try {
       // Generate a unique referral code
-      const referralCode = `${user.username || user.email.split('@')[0]}_${Math.random().toString(36).substr(2, 6)}`;
-      
+      const referralCode = `${user.username || user.email.split('@')[0]}_${Math.random()
+        .toString(36)
+        .substr(2, 6)}`;
+
       const { data, error } = await supabase
         .from('affiliates')
         .insert({
           user_id: user.id,
           referral_code: referralCode.toLowerCase(),
-          commission_rate: 10.00 // Default commission rate
+          commission_rate: 10.0 // Default commission rate
         })
         .select()
         .single();
@@ -291,7 +290,7 @@ export const MonetizationProvider = ({ children }) => {
       setAffiliateInfo(data);
       setIsAffiliate(true);
       addToast('Successfully signed up for the affiliate program!', { type: 'success' });
-      
+
       return { success: true, isNewAffiliate: true, affiliate: data };
     } catch (error) {
       console.error('Affiliate signup error:', error);
@@ -318,7 +317,7 @@ export const MonetizationProvider = ({ children }) => {
             .from('user_subscriptions')
             .update({ status: 'canceled' })
             .eq('id', subscription.id);
-          
+
           setSubscription(null);
           addToast('Your subscription has been canceled', { type: 'success' });
           return { success: true };
@@ -330,7 +329,7 @@ export const MonetizationProvider = ({ children }) => {
       }
       return { error: 'No active subscription found' };
     },
-    
+
     // Products & Purchases
     products,
     purchaseProduct,
@@ -342,7 +341,7 @@ export const MonetizationProvider = ({ children }) => {
           .select('*, product:product_id(*)')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
-        
+
         if (error) throw error;
         return data || [];
       } catch (error) {
@@ -351,17 +350,17 @@ export const MonetizationProvider = ({ children }) => {
         return [];
       }
     },
-    
+
     // Affiliate Program
     isAffiliate,
     affiliateInfo,
     referrals,
     signUpAsAffiliate,
     getAffiliateLink,
-    
+
     // Loading state
     isLoading,
-    
+
     // Data fetching functions
     fetchSubscriptionPlans,
     fetchUserSubscription,
@@ -369,11 +368,7 @@ export const MonetizationProvider = ({ children }) => {
     fetchAffiliateInfo
   };
 
-  return (
-    <MonetizationContext.Provider value={value}>
-      {children}
-    </MonetizationContext.Provider>
-  );
+  return <MonetizationContext.Provider value={value}>{children}</MonetizationContext.Provider>;
 };
 
 export default MonetizationProvider;

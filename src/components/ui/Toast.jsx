@@ -4,149 +4,159 @@ import { FiCheckCircle, FiXCircle, FiInfo, FiAlertCircle, FiX } from 'react-icon
 
 const ToastContext = createContext(null);
 
-export const ToastProvider = ({ children, position = 'bottom-right', limit = 5, autoClose = 5000 }) => {
+export const ToastProvider = ({
+  children,
+  position = 'bottom-right',
+  limit = 5,
+  autoClose = 5000
+}) => {
   const [toasts, setToasts] = useState([]);
 
-  const removeToast = useCallback((id) => {
-    setToasts((currentToasts) =>
-      currentToasts.filter((toast) => toast.id !== id)
-    );
+  const removeToast = useCallback(id => {
+    setToasts(currentToasts => currentToasts.filter(toast => toast.id !== id));
   }, []);
 
-  const startTimer = useCallback((toastId, duration) => {
-    return setTimeout(() => {
-      removeToast(toastId);
-    }, duration);
-  }, [removeToast]);
+  const startTimer = useCallback(
+    (toastId, duration) => {
+      return setTimeout(() => {
+        removeToast(toastId);
+      }, duration);
+    },
+    [removeToast]
+  );
 
-  const addToast = useCallback((message, options = {}) => {
-    const {
-      type = 'info',
-      duration = autoClose,
-      title = '',
-      icon = null,
-      action = null,
-      className = '',
-      id = `toast-${Date.now()}`,
-    } = options;
+  const addToast = useCallback(
+    (message, options = {}) => {
+      const {
+        type = 'info',
+        duration = autoClose,
+        title = '',
+        icon = null,
+        action = null,
+        className = '',
+        id = `toast-${Date.now()}`
+      } = options;
 
-    // Remove any existing toast with the same ID
-    if (options.id) {
-      removeToast(options.id);
-    }
-
-    setToasts((prevToasts) => {
-      const newToasts = [...prevToasts, { 
-        id, 
-        message, 
-        type, 
-        title,
-        action,
-        icon,
-        className
-      }];
-      
-      // Only keep the last 'limit' toasts
-      if (newToasts.length > limit) {
-        return newToasts.slice(-limit);
+      // Remove any existing toast with the same ID
+      if (options.id) {
+        removeToast(options.id);
       }
-      return newToasts;
-    });
 
-    if (duration) {
-      const timer = startTimer(id, duration);
-      return () => clearTimeout(timer);
-    }
+      setToasts(prevToasts => {
+        const newToasts = [
+          ...prevToasts,
+          {
+            id,
+            message,
+            type,
+            title,
+            action,
+            icon,
+            className
+          }
+        ];
 
-    return id;
-  }, [limit, autoClose, removeToast, startTimer]);
+        // Only keep the last 'limit' toasts
+        if (newToasts.length > limit) {
+          return newToasts.slice(-limit);
+        }
+        return newToasts;
+      });
 
+      if (duration) {
+        const timer = startTimer(id, duration);
+        return () => clearTimeout(timer);
+      }
 
-
-  const toastTypes = useMemo(() => ({
-    success: {
-      icon: <FiCheckCircle className="text-green-500" />,
-      className: 'toast-success',
-      defaultTitle: 'Success!'
+      return id;
     },
-    error: {
-      icon: <FiXCircle className="text-red-500" />,
-      className: 'toast-error',
-      defaultTitle: 'Error!'
-    },
-    info: {
-      icon: <FiInfo className="text-blue-500" />,
-      className: 'toast-info',
-      defaultTitle: 'Info'
-    },
-    warning: {
-      icon: <FiAlertCircle className="text-yellow-500" />,
-      className: 'toast-warning',
-      defaultTitle: 'Warning!'
-    },
-  }), []);
+    [limit, autoClose, removeToast, startTimer]
+  );
+
+  const toastTypes = useMemo(
+    () => ({
+      success: {
+        icon: <FiCheckCircle className='text-green-500' />,
+        className: 'toast-success',
+        defaultTitle: 'Success!'
+      },
+      error: {
+        icon: <FiXCircle className='text-red-500' />,
+        className: 'toast-error',
+        defaultTitle: 'Error!'
+      },
+      info: {
+        icon: <FiInfo className='text-blue-500' />,
+        className: 'toast-info',
+        defaultTitle: 'Info'
+      },
+      warning: {
+        icon: <FiAlertCircle className='text-yellow-500' />,
+        className: 'toast-warning',
+        defaultTitle: 'Warning!'
+      }
+    }),
+    []
+  );
 
   // Position is now handled by CSS classes
 
-  const contextValue = useMemo(() => ({
-    addToast,
-    removeToast,
-  }), [addToast, removeToast]);
+  const contextValue = useMemo(
+    () => ({
+      addToast,
+      removeToast
+    }),
+    [addToast, removeToast]
+  );
 
   return (
     <ToastContext.Provider value={contextValue}>
       {children}
       <div className={`toast-container toast-${position}`}>
         <AnimatePresence initial={false}>
-          {toasts.map((toast) => {
+          {toasts.map(toast => {
             const typeConfig = toastTypes[toast.type] || toastTypes.info;
             const icon = toast.icon || typeConfig.icon;
             const title = toast.title || typeConfig.defaultTitle;
-            
+
             return (
               <motion.div
                 key={toast.id}
                 layout
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ 
-                  opacity: 0, 
+                exit={{
+                  opacity: 0,
                   scale: 0.95,
                   transition: { duration: 0.15 }
                 }}
-                transition={{ 
+                transition={{
                   type: 'spring',
                   damping: 25,
                   stiffness: 300
                 }}
                 className={`toast ${typeConfig.className} ${toast.className || ''}`}
-                role="alert"
-                aria-live="assertive"
+                role='alert'
+                aria-live='assertive'
                 data-toast-id={toast.id}
                 style={{
                   '--toast-duration': `${toast.duration}ms`,
                   '--toast-progress': '100%'
                 }}
               >
-                <div className="toast-icon">
-                  {icon}
-                </div>
-                <div className="toast-content">
-                  {title && <h4 className="toast-title">{title}</h4>}
-                  <p className="toast-message">{toast.message}</p>
-                  {toast.action && (
-                    <div className="mt-2">
-                      {toast.action}
-                    </div>
-                  )}
+                <div className='toast-icon'>{icon}</div>
+                <div className='toast-content'>
+                  {title && <h4 className='toast-title'>{title}</h4>}
+                  <p className='toast-message'>{toast.message}</p>
+                  {toast.action && <div className='mt-2'>{toast.action}</div>}
                 </div>
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     removeToast(toast.id);
                   }}
-                  className="toast-close"
-                  aria-label="Close notification"
+                  className='toast-close'
+                  aria-label='Close notification'
                 >
                   <FiX size={18} />
                 </button>

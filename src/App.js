@@ -18,7 +18,9 @@ const PaymentCallbackPage = lazy(() => import('./components/PaymentCallbackPage'
 const PaymentHistoryPage = lazy(() => import('./components/PaymentHistoryPage'));
 const SubscriptionManagementPage = lazy(() => import('./components/SubscriptionManagementPage'));
 const RevenueAnalyticsDashboard = lazy(() => import('./components/RevenueAnalyticsDashboard'));
-const SubscriptionMetricsDashboard = lazy(() => import('./components/SubscriptionMetricsDashboard'));
+const SubscriptionMetricsDashboard = lazy(() =>
+  import('./components/SubscriptionMetricsDashboard')
+);
 const DiscountCodeManager = lazy(() => import('./components/marketing/DiscountCodeManager'));
 const ReferralProgramManager = lazy(() => import('./components/marketing/ReferralProgramManager'));
 const StudentDiscountPage = lazy(() => import('./components/marketing/StudentDiscountPage'));
@@ -45,7 +47,9 @@ const TeacherPublicProfilePage = lazy(() => import('./components/TeacherPublicPr
 const TeacherAvailabilityPage = lazy(() => import('./components/TeacherAvailabilityPage'));
 const BookingPage = lazy(() => import('./components/BookingPage'));
 const TeacherBookingsPage = lazy(() => import('./components/TeacherBookingsPage'));
-const TeacherEarningsDashboard = lazy(() => import('./components/monetization/TeacherEarningsDashboard'));
+const TeacherEarningsDashboard = lazy(() =>
+  import('./components/monetization/TeacherEarningsDashboard')
+);
 const ParentDashboard = lazy(() => import('./components/ParentDashboard'));
 const PaymentStatusPage = lazy(() => import('./components/PaymentStatusPage'));
 const InsertSampleQuestionPage = lazy(() => import('./components/InsertSampleQuestionPage'));
@@ -95,7 +99,9 @@ function App() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (!session) {
         setProfile(null);
@@ -135,7 +141,7 @@ function App() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const orderTrackingId = urlParams.get('OrderTrackingId');
-    
+
     if (orderTrackingId && session && profile) {
       setPage('payment-callback');
     }
@@ -149,13 +155,13 @@ function App() {
   };
 
   // Centralized navigation to track history for Back button
-  const navigate = (nextPage) => {
-    setHistory((h) => (page ? [...h, page] : h));
+  const navigate = nextPage => {
+    setHistory(h => (page ? [...h, page] : h));
     setPage(nextPage);
   };
 
   const goBack = () => {
-    setHistory((h) => {
+    setHistory(h => {
       if (!h.length) {
         setPage(getHomePage());
         return h;
@@ -176,70 +182,285 @@ function App() {
       const currentUser = { ...session.user, ...profile };
       if (profile.role === 'super-admin') {
         switch (page) {
-          case 'super-admin': return <SuperAdminDashboard setPage={navigate} setSelectedApplication={setSelectedApplication} />;
-          case 'review-application': return <ApplicationReviewPage application={selectedApplication} setPage={navigate} />;
-          case 'revenue-analytics': return <RevenueAnalyticsDashboard currentUser={currentUser} setPage={navigate} />;
-          case 'subscription-metrics': return <SubscriptionMetricsDashboard currentUser={currentUser} setPage={navigate} />;
-          case 'discount-codes': return <DiscountCodeManager currentUser={currentUser} setPage={navigate} />;
-          case 'referral-programs': return <ReferralProgramManager currentUser={currentUser} setPage={navigate} />;
-          default: return <SuperAdminDashboard setPage={navigate} setSelectedApplication={setSelectedApplication} />;
+          case 'super-admin':
+            return (
+              <SuperAdminDashboard
+                setPage={navigate}
+                setSelectedApplication={setSelectedApplication}
+              />
+            );
+          case 'review-application':
+            return <ApplicationReviewPage application={selectedApplication} setPage={navigate} />;
+          case 'revenue-analytics':
+            return <RevenueAnalyticsDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'subscription-metrics':
+            return <SubscriptionMetricsDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'discount-codes':
+            return <DiscountCodeManager currentUser={currentUser} setPage={navigate} />;
+          case 'referral-programs':
+            return <ReferralProgramManager currentUser={currentUser} setPage={navigate} />;
+          default:
+            return (
+              <SuperAdminDashboard
+                setPage={navigate}
+                setSelectedApplication={setSelectedApplication}
+              />
+            );
         }
       } else if (profile.role === 'teacher') {
         switch (page) {
-          case 'teacher-dashboard': return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
-          case 'create-quiz': return <CreateQuizPage currentUser={currentUser} setPage={navigate} setSelectedQuiz={setSelectedQuiz} />;
-          case 'add-questions': return <AddQuestionsPage selectedQuiz={selectedQuiz} setPage={navigate} />;
-          case 'manage-quizzes': return <ManageQuizzesPage currentUser={currentUser} setPage={navigate} setSelectedQuiz={setSelectedQuiz} />;
-          case 'teacher-profile': return <TeacherProfilePage currentUser={currentUser} setPage={navigate} />;
-          case 'teacher-availability': return <TeacherAvailabilityPage currentUser={currentUser} setPage={navigate} />;
-          case 'teacher-bookings': return <TeacherBookingsPage currentUser={currentUser} setPage={navigate} />;
-          case 'teacher-earnings-dashboard': return <TeacherEarningsDashboard currentUser={currentUser} setPage={navigate} />;
-          case 'insert-sample-question': return <InsertSampleQuestionPage currentUser={currentUser} setPage={navigate} />;
-          case 'create-course': return <CreateCoursePage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
-          case 'manage-courses': return <ManageCoursesPage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
-          case 'manage-course': return <ManageCoursePage currentUser={currentUser} selectedCourse={selectedCourse} setPage={navigate} setSelectedChapter={setSelectedChapter} />;
-          case 'manage-chapter': return <ManageChapterPage currentUser={currentUser} selectedChapter={selectedChapter} setPage={navigate} setSelectedLesson={setSelectedLesson} />;
-          case 'manage-lesson': return <ManageLessonPage currentUser={currentUser} selectedLesson={selectedLesson} setPage={navigate} />;
-          case 'create-chapter-quiz': return <CreateChapterQuizPage currentUser={currentUser} selectedChapter={selectedChapter} setPage={navigate} setSelectedQuiz={setSelectedQuiz} />;
-          case 'subscriptions': return <SubscriptionPlansPage currentUser={currentUser} setPage={navigate} setSelectedPlan={setSelectedPlan} setBillingCycle={setBillingCycle} />;
-          case 'payment-processing': return <PaymentProcessingPage currentUser={currentUser} selectedPlan={selectedPlan} billingCycle={billingCycle} setPage={navigate} />;
-          case 'payment-callback': return <PaymentCallbackPage currentUser={currentUser} setPage={navigate} />;
-          case 'payment-history': return <PaymentHistoryPage currentUser={currentUser} setPage={navigate} />;
-          case 'subscription-management': return <SubscriptionManagementPage currentUser={currentUser} setPage={navigate} setSelectedPlan={setSelectedPlan} setBillingCycle={setBillingCycle} />;
-          case 'student-discount': return <StudentDiscountPage currentUser={currentUser} setPage={navigate} />;
-          default: return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-dashboard':
+            return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'create-quiz':
+            return (
+              <CreateQuizPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedQuiz={setSelectedQuiz}
+              />
+            );
+          case 'add-questions':
+            return <AddQuestionsPage selectedQuiz={selectedQuiz} setPage={navigate} />;
+          case 'manage-quizzes':
+            return (
+              <ManageQuizzesPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedQuiz={setSelectedQuiz}
+              />
+            );
+          case 'teacher-profile':
+            return <TeacherProfilePage currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-availability':
+            return <TeacherAvailabilityPage currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-bookings':
+            return <TeacherBookingsPage currentUser={currentUser} setPage={navigate} />;
+          case 'teacher-earnings-dashboard':
+            return <TeacherEarningsDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'insert-sample-question':
+            return <InsertSampleQuestionPage currentUser={currentUser} setPage={navigate} />;
+          case 'create-course':
+            return (
+              <CreateCoursePage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedCourse={setSelectedCourse}
+              />
+            );
+          case 'manage-courses':
+            return (
+              <ManageCoursesPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedCourse={setSelectedCourse}
+              />
+            );
+          case 'manage-course':
+            return (
+              <ManageCoursePage
+                currentUser={currentUser}
+                selectedCourse={selectedCourse}
+                setPage={navigate}
+                setSelectedChapter={setSelectedChapter}
+              />
+            );
+          case 'manage-chapter':
+            return (
+              <ManageChapterPage
+                currentUser={currentUser}
+                selectedChapter={selectedChapter}
+                setPage={navigate}
+                setSelectedLesson={setSelectedLesson}
+              />
+            );
+          case 'manage-lesson':
+            return (
+              <ManageLessonPage
+                currentUser={currentUser}
+                selectedLesson={selectedLesson}
+                setPage={navigate}
+              />
+            );
+          case 'create-chapter-quiz':
+            return (
+              <CreateChapterQuizPage
+                currentUser={currentUser}
+                selectedChapter={selectedChapter}
+                setPage={navigate}
+                setSelectedQuiz={setSelectedQuiz}
+              />
+            );
+          case 'subscriptions':
+            return (
+              <SubscriptionPlansPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedPlan={setSelectedPlan}
+                setBillingCycle={setBillingCycle}
+              />
+            );
+          case 'payment-processing':
+            return (
+              <PaymentProcessingPage
+                currentUser={currentUser}
+                selectedPlan={selectedPlan}
+                billingCycle={billingCycle}
+                setPage={navigate}
+              />
+            );
+          case 'payment-callback':
+            return <PaymentCallbackPage currentUser={currentUser} setPage={navigate} />;
+          case 'payment-history':
+            return <PaymentHistoryPage currentUser={currentUser} setPage={navigate} />;
+          case 'subscription-management':
+            return (
+              <SubscriptionManagementPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedPlan={setSelectedPlan}
+                setBillingCycle={setBillingCycle}
+              />
+            );
+          case 'student-discount':
+            return <StudentDiscountPage currentUser={currentUser} setPage={navigate} />;
+          default:
+            return <TeacherDashboard currentUser={currentUser} setPage={navigate} />;
         }
-      } else { // Student role
+      } else {
+        // Student role
         switch (page) {
-          case 'dashboard': return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
-          case 'select-subject': return <SubjectSelectionPage currentUser={currentUser} setPage={navigate} setSelectedSubject={setSelectedSubject} />;
-          case 'quiz': return <QuizPage currentUser={currentUser} selectedSubject={selectedSubject} setPage={navigate} />;
-          case 'leaderboard': return <LeaderboardPage currentUser={currentUser} setPage={navigate} />;
-          case 'upgrade': return <UpgradePage currentUser={currentUser} setPage={navigate} />;
-          case 'payment-status': return <PaymentStatusPage currentUser={currentUser} setPage={navigate} />;
-          case 'subscriptions': return <SubscriptionPlansPage currentUser={currentUser} setPage={navigate} setSelectedPlan={setSelectedPlan} setBillingCycle={setBillingCycle} />;
-          case 'payment-processing': return <PaymentProcessingPage currentUser={currentUser} selectedPlan={selectedPlan} billingCycle={billingCycle} setPage={navigate} />;
-          case 'payment-callback': return <PaymentCallbackPage currentUser={currentUser} setPage={navigate} />;
-          case 'payment-history': return <PaymentHistoryPage currentUser={currentUser} setPage={navigate} />;
-          case 'subscription-management': return <SubscriptionManagementPage currentUser={currentUser} setPage={navigate} setSelectedPlan={setSelectedPlan} setBillingCycle={setBillingCycle} />;
-          case 'student-discount': return <StudentDiscountPage currentUser={currentUser} setPage={navigate} />;
-          case 'shop': return <InAppPurchases currentUser={profile} setPage={navigate} />;
-          case 'affiliate': return <AffiliateProgram currentUser={profile} setPage={navigate} />;
-          case 'tutor-application': return <TutorApplicationPage currentUser={profile} setPage={navigate} />;
-          case 'browse-teachers': return <BrowseTeachersPage setPage={navigate} setSelectedTeacher={setSelectedTeacher} />;
-          case 'teacher-public-profile': return <TeacherPublicProfilePage teacher={selectedTeacher} currentUser={currentUser} setPage={navigate} />;
-          case 'booking': return <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={navigate} />;
-          case 'parent-dashboard': return <ParentDashboard user={currentUser} setPage={navigate} />;
-          case 'browse-courses': return <BrowseCoursesPage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
-          case 'student-courses': return <StudentCoursesPage currentUser={currentUser} setPage={navigate} setSelectedCourse={setSelectedCourse} />;
-          case 'course-overview': return <CourseOverviewPage currentUser={currentUser} selectedCourse={selectedCourse} setPage={navigate} setSelectedChapter={setSelectedChapter} setSelectedLesson={setSelectedLesson} />;
-          case 'lesson-viewer': return <LessonViewerPage currentUser={currentUser} selectedLesson={selectedLesson} selectedChapter={selectedChapter} setPage={navigate} />;
-          case 'chapter-quiz': return <ChapterQuizPage currentUser={currentUser} selectedChapter={selectedChapter} setPage={navigate} />;
-          case 'student-certificates': return <StudentCertificatesPage currentUser={currentUser} setPage={navigate} />;
-          default: return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'dashboard':
+            return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
+          case 'select-subject':
+            return (
+              <SubjectSelectionPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedSubject={setSelectedSubject}
+              />
+            );
+          case 'quiz':
+            return (
+              <QuizPage
+                currentUser={currentUser}
+                selectedSubject={selectedSubject}
+                setPage={navigate}
+              />
+            );
+          case 'leaderboard':
+            return <LeaderboardPage currentUser={currentUser} setPage={navigate} />;
+          case 'upgrade':
+            return <UpgradePage currentUser={currentUser} setPage={navigate} />;
+          case 'payment-status':
+            return <PaymentStatusPage currentUser={currentUser} setPage={navigate} />;
+          case 'subscriptions':
+            return (
+              <SubscriptionPlansPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedPlan={setSelectedPlan}
+                setBillingCycle={setBillingCycle}
+              />
+            );
+          case 'payment-processing':
+            return (
+              <PaymentProcessingPage
+                currentUser={currentUser}
+                selectedPlan={selectedPlan}
+                billingCycle={billingCycle}
+                setPage={navigate}
+              />
+            );
+          case 'payment-callback':
+            return <PaymentCallbackPage currentUser={currentUser} setPage={navigate} />;
+          case 'payment-history':
+            return <PaymentHistoryPage currentUser={currentUser} setPage={navigate} />;
+          case 'subscription-management':
+            return (
+              <SubscriptionManagementPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedPlan={setSelectedPlan}
+                setBillingCycle={setBillingCycle}
+              />
+            );
+          case 'student-discount':
+            return <StudentDiscountPage currentUser={currentUser} setPage={navigate} />;
+          case 'shop':
+            return <InAppPurchases currentUser={profile} setPage={navigate} />;
+          case 'affiliate':
+            return <AffiliateProgram currentUser={profile} setPage={navigate} />;
+          case 'tutor-application':
+            return <TutorApplicationPage currentUser={profile} setPage={navigate} />;
+          case 'browse-teachers':
+            return (
+              <BrowseTeachersPage setPage={navigate} setSelectedTeacher={setSelectedTeacher} />
+            );
+          case 'teacher-public-profile':
+            return (
+              <TeacherPublicProfilePage
+                teacher={selectedTeacher}
+                currentUser={currentUser}
+                setPage={navigate}
+              />
+            );
+          case 'booking':
+            return (
+              <BookingPage currentUser={currentUser} teacher={selectedTeacher} setPage={navigate} />
+            );
+          case 'parent-dashboard':
+            return <ParentDashboard user={currentUser} setPage={navigate} />;
+          case 'browse-courses':
+            return (
+              <BrowseCoursesPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedCourse={setSelectedCourse}
+              />
+            );
+          case 'student-courses':
+            return (
+              <StudentCoursesPage
+                currentUser={currentUser}
+                setPage={navigate}
+                setSelectedCourse={setSelectedCourse}
+              />
+            );
+          case 'course-overview':
+            return (
+              <CourseOverviewPage
+                currentUser={currentUser}
+                selectedCourse={selectedCourse}
+                setPage={navigate}
+                setSelectedChapter={setSelectedChapter}
+                setSelectedLesson={setSelectedLesson}
+              />
+            );
+          case 'lesson-viewer':
+            return (
+              <LessonViewerPage
+                currentUser={currentUser}
+                selectedLesson={selectedLesson}
+                selectedChapter={selectedChapter}
+                setPage={navigate}
+              />
+            );
+          case 'chapter-quiz':
+            return (
+              <ChapterQuizPage
+                currentUser={currentUser}
+                selectedChapter={selectedChapter}
+                setPage={navigate}
+              />
+            );
+          case 'student-certificates':
+            return <StudentCertificatesPage currentUser={currentUser} setPage={navigate} />;
+          default:
+            return <StudentDashboard currentUser={currentUser} setPage={navigate} />;
         }
       }
-    } else { // Not logged in - Public Pages
+    } else {
+      // Not logged in - Public Pages
       switch (page) {
         case 'browse-teachers':
           return <BrowseTeachersPage setPage={navigate} setSelectedTeacher={setSelectedTeacher} />;
@@ -249,9 +470,13 @@ function App() {
           return <TutorApplicationPage setPage={navigate} />;
         case 'auth-choice':
           return <AuthChoicePage setPage={navigate} />;
-        case 'login': return <LoginPage setPage={navigate} />;
-        case 'register': return <RegistrationPage setPage={navigate} />;
-        case 'landing': default: return <LandingPage setPage={navigate} />;
+        case 'login':
+          return <LoginPage setPage={navigate} />;
+        case 'register':
+          return <RegistrationPage setPage={navigate} />;
+        case 'landing':
+        default:
+          return <LandingPage setPage={navigate} />;
       }
     }
   };
@@ -259,16 +484,16 @@ function App() {
   const appTitle = (() => {
     // Optional page title mapping for TopNav
     const map = {
-      'landing': 'ZedQuiz',
-      'dashboard': 'Student Dashboard',
+      landing: 'ZedQuiz',
+      dashboard: 'Student Dashboard',
       'teacher-dashboard': 'Teacher Dashboard',
       'super-admin': 'Admin',
       'browse-teachers': 'Browse Teachers',
       'teacher-public-profile': 'Teacher Profile',
-      'booking': 'Book a Lesson',
-      'leaderboard': 'Leaderboard',
-      'upgrade': 'Upgrade',
-      'subscriptions': 'Subscriptions',
+      booking: 'Book a Lesson',
+      leaderboard: 'Leaderboard',
+      upgrade: 'Upgrade',
+      subscriptions: 'Subscriptions',
       'payment-processing': 'Complete Payment',
       'payment-callback': 'Payment Status',
       'payment-history': 'Payment History',
@@ -278,8 +503,8 @@ function App() {
       'discount-codes': 'Discount Codes',
       'referral-programs': 'Referral Programs',
       'student-discount': 'Student Discount',
-      'shop': 'Shop',
-      'affiliate': 'Affiliate',
+      shop: 'Shop',
+      affiliate: 'Affiliate',
       'tutor-application': 'Tutor Application',
       'teacher-availability': 'Availability',
       'teacher-bookings': 'Bookings',
@@ -309,7 +534,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <ToastProvider autoClose={5000} position="top-right">
+        <ToastProvider autoClose={5000} position='top-right'>
           <GamificationProvider>
             <MonetizationProvider>
               {profile ? (
@@ -320,14 +545,10 @@ function App() {
                   onHome={onHome}
                 />
               ) : null}
-              <div className="app-content" style={{ paddingBottom: profile ? 84 : 0 }}>
-                <Suspense fallback={<SkeletonCard />}>
-                  {renderPage()}
-                </Suspense>
+              <div className='app-content' style={{ paddingBottom: profile ? 84 : 0 }}>
+                <Suspense fallback={<SkeletonCard />}>{renderPage()}</Suspense>
               </div>
-              {profile ? (
-                <BottomNav role={profile.role} navigate={navigate} />
-              ) : null}
+              {profile ? <BottomNav role={profile.role} navigate={navigate} /> : null}
             </MonetizationProvider>
           </GamificationProvider>
         </ToastProvider>

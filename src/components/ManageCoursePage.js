@@ -41,10 +41,12 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
       // Fetch chapters
       const { data: chaptersData, error: chaptersError } = await supabase
         .from('chapters')
-        .select(`
+        .select(
+          `
           *,
           lessons:lessons(count)
-        `)
+        `
+        )
         .eq('course_id', selectedCourse.id)
         .order('order_index');
 
@@ -58,12 +60,12 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
     }
   };
 
-  const handleAddChapter = async (e) => {
+  const handleAddChapter = async e => {
     e.preventDefault();
-    
+
     try {
       const nextOrderIndex = chapters.length + 1;
-      
+
       const chapterData = {
         course_id: course.id,
         title: newChapter.title,
@@ -73,11 +75,7 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
         estimated_duration: parseInt(newChapter.estimatedDuration) || null
       };
 
-      const { data, error } = await supabase
-        .from('chapters')
-        .insert(chapterData)
-        .select()
-        .single();
+      const { data, error } = await supabase.from('chapters').insert(chapterData).select().single();
 
       if (error) throw error;
 
@@ -113,15 +111,15 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
     }
   };
 
-  const handleManageChapter = (chapter) => {
+  const handleManageChapter = chapter => {
     setSelectedChapter(chapter);
     setPage('manage-chapter');
   };
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading course data...</p>
         </div>
       </div>
@@ -130,8 +128,8 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
 
   if (!course) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Course not found.</p>
           <button onClick={() => setPage('teacher-dashboard')}>Back to Dashboard</button>
         </div>
@@ -140,42 +138,47 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Manage Course: {course.title}</h2>
-        <button className="back-button" onClick={() => setPage('manage-courses')}>
+        <button className='back-button' onClick={() => setPage('manage-courses')}>
           Back to Courses
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Course Overview */}
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+        <div className='card'>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '1rem'
+            }}
+          >
             <div>
               <h3>{course.title}</h3>
               <p style={{ color: '#666', margin: '0.5rem 0' }}>
                 {course.subject} • {course.grade_level} • {course.difficulty_level}
               </p>
-              {course.description && (
-                <p style={{ margin: '0.5rem 0' }}>{course.description}</p>
-              )}
+              {course.description && <p style={{ margin: '0.5rem 0' }}>{course.description}</p>}
             </div>
             <div style={{ display: 'flex', gap: '0.5rem', flexDirection: 'column' }}>
-              <span style={{
-                padding: '0.25rem 0.75rem',
-                borderRadius: '20px',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                background: course.is_published ? '#e8f5e9' : '#fff3e0',
-                color: course.is_published ? '#2e7d32' : '#ef6c00'
-              }}>
+              <span
+                style={{
+                  padding: '0.25rem 0.75rem',
+                  borderRadius: '20px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  background: course.is_published ? '#e8f5e9' : '#fff3e0',
+                  color: course.is_published ? '#2e7d32' : '#ef6c00'
+                }}
+              >
                 {course.is_published ? 'Published' : 'Draft'}
               </span>
               {course.price > 0 && (
-                <span style={{ fontSize: '0.875rem', color: '#666' }}>
-                  K{course.price}
-                </span>
+                <span style={{ fontSize: '0.875rem', color: '#666' }}>K{course.price}</span>
               )}
             </div>
           </div>
@@ -201,58 +204,64 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
 
         {/* Add Chapter Form */}
         {showAddChapter && (
-          <div className="card">
+          <div className='card'>
             <h3>Add New Chapter</h3>
             <form onSubmit={handleAddChapter}>
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Chapter Title *</label>
                 <input
-                  type="text"
+                  type='text'
                   value={newChapter.title}
-                  onChange={(e) => setNewChapter(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="e.g., Introduction to Algebra"
+                  onChange={e => setNewChapter(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder='e.g., Introduction to Algebra'
                   required
                 />
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Chapter Description</label>
                 <textarea
                   value={newChapter.description}
-                  onChange={(e) => setNewChapter(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="What will students learn in this chapter?"
+                  onChange={e => setNewChapter(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder='What will students learn in this chapter?'
                   rows={3}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Required Score to Unlock Next Chapter (%)</label>
                   <input
-                    type="number"
-                    min="0"
-                    max="100"
+                    type='number'
+                    min='0'
+                    max='100'
                     value={newChapter.unlockScore}
-                    onChange={(e) => setNewChapter(prev => ({ ...prev, unlockScore: e.target.value }))}
+                    onChange={e =>
+                      setNewChapter(prev => ({ ...prev, unlockScore: e.target.value }))
+                    }
                   />
                 </div>
 
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Estimated Duration (minutes)</label>
                   <input
-                    type="number"
-                    min="0"
+                    type='number'
+                    min='0'
                     value={newChapter.estimatedDuration}
-                    onChange={(e) => setNewChapter(prev => ({ ...prev, estimatedDuration: e.target.value }))}
-                    placeholder="e.g., 60"
+                    onChange={e =>
+                      setNewChapter(prev => ({ ...prev, estimatedDuration: e.target.value }))
+                    }
+                    placeholder='e.g., 60'
                   />
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                <button type="submit" style={{ width: 'auto' }}>Add Chapter</button>
+                <button type='submit' style={{ width: 'auto' }}>
+                  Add Chapter
+                </button>
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => setShowAddChapter(false)}
                   style={{ width: 'auto', background: '#6b7280' }}
                 >
@@ -264,9 +273,9 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
         )}
 
         {/* Chapters List */}
-        <div className="card">
+        <div className='card'>
           <h3>Course Chapters ({chapters.length})</h3>
-          
+
           {chapters.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
               <p>No chapters yet. Add your first chapter to get started!</p>
@@ -283,7 +292,13 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
                     background: '#f9fafb'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start'
+                    }}
+                  >
                     <div style={{ flex: 1 }}>
                       <h4 style={{ margin: '0 0 0.5rem 0' }}>
                         Chapter {chapter.order_index}: {chapter.title}
@@ -293,7 +308,14 @@ function ManageCoursePage({ currentUser, selectedCourse, setPage, setSelectedCha
                           {chapter.description}
                         </p>
                       )}
-                      <div style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', color: '#666' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '1rem',
+                          fontSize: '0.875rem',
+                          color: '#666'
+                        }}
+                      >
                         <span>Lessons: {chapter.lessons?.[0]?.count || 0}</span>
                         <span>Unlock Score: {chapter.unlock_score_required}%</span>
                         {chapter.estimated_duration && (

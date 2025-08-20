@@ -62,18 +62,28 @@ function PaymentStatusPage({ currentUser, setPage }) {
   }, [currentUser, setPage]);
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Payment Status</h2>
-        <button className="back-button" onClick={() => setPage('upgrade')}>Back</button>
+        <button className='back-button' onClick={() => setPage('upgrade')}>
+          Back
+        </button>
       </header>
-      <div className="content-body">
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>Status: {status}</div>
+      <div className='content-body'>
+        <div className='card' style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+            Status: {status}
+          </div>
           <p style={{ color: '#6b7280' }}>{message}</p>
           {!loading && (
             <div style={{ marginTop: '1rem' }}>
-              <button type="button" onClick={() => setPage('upgrade')} style={{ width: 'auto', background: '#6b7280' }}>Go back</button>
+              <button
+                type='button'
+                onClick={() => setPage('upgrade')}
+                style={{ width: 'auto', background: '#6b7280' }}
+              >
+                Go back
+              </button>
             </div>
           )}
         </div>

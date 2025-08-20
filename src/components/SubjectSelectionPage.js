@@ -27,30 +27,39 @@ function SubjectSelectionPage({ currentUser, setPage, setSelectedSubject }) {
     fetchSubjects();
   }, [currentUser.grade_level]);
 
-  const handleSubjectSelect = (subject) => {
+  const handleSubjectSelect = subject => {
     setSelectedSubject(subject);
     setPage('quiz');
   };
 
   return (
-    <div className="main-container">
-       <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Select a Subject</h2>
-        <button className="back-button" onClick={() => setPage('dashboard')}>Back to Dashboard</button>
+        <button className='back-button' onClick={() => setPage('dashboard')}>
+          Back to Dashboard
+        </button>
       </header>
-      <div className="content-body">
-        <div className="subject-list">
+      <div className='content-body'>
+        <div className='subject-list'>
           {loading ? (
             <p>Loading subjects...</p>
           ) : availableSubjects.length > 0 ? (
             availableSubjects.map(subject => (
-              <button key={subject} className="subject-button" onClick={() => handleSubjectSelect(subject)}>
+              <button
+                key={subject}
+                className='subject-button'
+                onClick={() => handleSubjectSelect(subject)}
+              >
                 {subject}
               </button>
             ))
           ) : (
-            <div className="card">
-                <p>No quizzes are available for your grade level ({currentUser.grade_level}) yet. Please check back later!</p>
+            <div className='card'>
+              <p>
+                No quizzes are available for your grade level ({currentUser.grade_level}) yet.
+                Please check back later!
+              </p>
             </div>
           )}
         </div>

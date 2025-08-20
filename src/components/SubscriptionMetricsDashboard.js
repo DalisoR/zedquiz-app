@@ -29,9 +29,7 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
       setLoading(true);
 
       // Fetch subscription metrics
-      let query = supabase
-        .from('subscription_metrics')
-        .select(`
+      let query = supabase.from('subscription_metrics').select(`
           *,
           profiles!subscription_metrics_user_id_fkey(full_name, email, created_at),
           subscriptions!subscription_metrics_subscription_id_fkey(status, created_at, cancelled_at)
@@ -45,23 +43,42 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
         query = query.gte('churn_risk_score', 70);
       }
 
-      const { data: subscriptionData, error: subError } = await query
-        .order('customer_lifetime_value', { ascending: false });
+      const { data: subscriptionData, error: subError } = await query.order(
+        'customer_lifetime_value',
+        { ascending: false }
+      );
 
       if (subError) throw subError;
       setSubscriptions(subscriptionData || []);
 
       // Calculate aggregate metrics
-      const totalMRR = subscriptionData?.reduce((sum, sub) => sum + parseFloat(sub.monthly_recurring_revenue || 0), 0) || 0;
-      const totalARR = subscriptionData?.reduce((sum, sub) => sum + parseFloat(sub.annual_recurring_revenue || 0), 0) || 0;
-      const averageCLV = subscriptionData?.length > 0 
-        ? subscriptionData.reduce((sum, sub) => sum + parseFloat(sub.customer_lifetime_value || 0), 0) / subscriptionData.length 
-        : 0;
+      const totalMRR =
+        subscriptionData?.reduce(
+          (sum, sub) => sum + parseFloat(sub.monthly_recurring_revenue || 0),
+          0
+        ) || 0;
+      const totalARR =
+        subscriptionData?.reduce(
+          (sum, sub) => sum + parseFloat(sub.annual_recurring_revenue || 0),
+          0
+        ) || 0;
+      const averageCLV =
+        subscriptionData?.length > 0
+          ? subscriptionData.reduce(
+              (sum, sub) => sum + parseFloat(sub.customer_lifetime_value || 0),
+              0
+            ) / subscriptionData.length
+          : 0;
 
       // Calculate churn rate
-      const activeCount = subscriptionData?.filter(sub => sub.subscriptions?.status === 'active').length || 0;
-      const cancelledCount = subscriptionData?.filter(sub => sub.subscriptions?.status === 'cancelled').length || 0;
-      const churnRate = (activeCount + cancelledCount) > 0 ? (cancelledCount / (activeCount + cancelledCount)) * 100 : 0;
+      const activeCount =
+        subscriptionData?.filter(sub => sub.subscriptions?.status === 'active').length || 0;
+      const cancelledCount =
+        subscriptionData?.filter(sub => sub.subscriptions?.status === 'cancelled').length || 0;
+      const churnRate =
+        activeCount + cancelledCount > 0
+          ? (cancelledCount / (activeCount + cancelledCount)) * 100
+          : 0;
 
       setMetrics({
         totalMRR,
@@ -72,16 +89,17 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
       });
 
       // Plan breakdown
-      const planStats = subscriptionData?.reduce((acc, sub) => {
-        const plan = sub.plan_id;
-        if (!acc[plan]) {
-          acc[plan] = { count: 0, mrr: 0, arr: 0 };
-        }
-        acc[plan].count++;
-        acc[plan].mrr += parseFloat(sub.monthly_recurring_revenue || 0);
-        acc[plan].arr += parseFloat(sub.annual_recurring_revenue || 0);
-        return acc;
-      }, {}) || {};
+      const planStats =
+        subscriptionData?.reduce((acc, sub) => {
+          const plan = sub.plan_id;
+          if (!acc[plan]) {
+            acc[plan] = { count: 0, mrr: 0, arr: 0 };
+          }
+          acc[plan].count++;
+          acc[plan].mrr += parseFloat(sub.monthly_recurring_revenue || 0);
+          acc[plan].arr += parseFloat(sub.annual_recurring_revenue || 0);
+          return acc;
+        }, {}) || {};
 
       setPlanBreakdown(planStats);
 
@@ -94,7 +112,6 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
 
       if (cohortError) throw cohortError;
       setCohortData(cohortAnalysis || []);
-
     } catch (err) {
       console.error('Error fetching subscription metrics:', err);
       showError('Failed to load subscription metrics');
@@ -103,7 +120,7 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
     }
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = amount => {
     return new Intl.NumberFormat('en-ZM', {
       style: 'currency',
       currency: 'ZMW',
@@ -111,44 +128,40 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
     }).format(amount || 0);
   };
 
-  const formatPercentage = (value) => {
+  const formatPercentage = value => {
     return `${(value || 0).toFixed(1)}%`;
   };
 
-  const getChurnRiskColor = (score) => {
+  const getChurnRiskColor = score => {
     if (score >= 80) return '#ef4444'; // High risk
     if (score >= 50) return '#f59e0b'; // Medium risk
     return '#10b981'; // Low risk
   };
 
-  const getChurnRiskLabel = (score) => {
+  const getChurnRiskLabel = score => {
     if (score >= 80) return 'High Risk';
     if (score >= 50) return 'Medium Risk';
     return 'Low Risk';
   };
 
   const renderMetricCard = (title, value, subtitle, color = '#3b82f6') => (
-    <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+    <div className='card' style={{ textAlign: 'center', padding: '1.5rem' }}>
       <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#666' }}>{title}</h3>
       <div style={{ fontSize: '2rem', fontWeight: 'bold', color, marginBottom: '0.5rem' }}>
         {value}
       </div>
-      {subtitle && (
-        <div style={{ fontSize: '0.875rem', color: '#666' }}>
-          {subtitle}
-        </div>
-      )}
+      {subtitle && <div style={{ fontSize: '0.875rem', color: '#666' }}>{subtitle}</div>}
     </div>
   );
 
   const renderPlanBreakdown = () => (
-    <div className="card">
+    <div className='card'>
       <h3>Plan Distribution</h3>
       <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
         {Object.entries(planBreakdown).map(([plan, data]) => {
           const planNames = { free: 'Free', premium: 'Premium', pro: 'Pro' };
           const planColors = { free: '#6b7280', premium: '#3b82f6', pro: '#8b5cf6' };
-          
+
           return (
             <div
               key={plan}
@@ -166,14 +179,10 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
                 <div style={{ fontWeight: 600, fontSize: '1.125rem' }}>
                   {planNames[plan] || plan}
                 </div>
-                <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                  {data.count} subscribers
-                </div>
+                <div style={{ fontSize: '0.875rem', color: '#666' }}>{data.count} subscribers</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: 600 }}>
-                  {formatCurrency(data.mrr)}/mo
-                </div>
+                <div style={{ fontWeight: 600 }}>{formatCurrency(data.mrr)}/mo</div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>
                   {formatCurrency(data.arr)}/yr
                 </div>
@@ -186,21 +195,28 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
   );
 
   const renderSubscriptionTable = () => (
-    <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+    <div className='card'>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}
+      >
         <h3>Subscription Details</h3>
         <select
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          onChange={e => setFilter(e.target.value)}
           style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #e5e7eb' }}
         >
-          <option value="all">All Subscriptions</option>
-          <option value="active">Active Only</option>
-          <option value="cancelled">Cancelled Only</option>
-          <option value="at-risk">At Risk (Churn Score ≥70%)</option>
+          <option value='all'>All Subscriptions</option>
+          <option value='active'>Active Only</option>
+          <option value='cancelled'>Cancelled Only</option>
+          <option value='at-risk'>At Risk (Churn Score ≥70%)</option>
         </select>
       </div>
-      
+
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -219,23 +235,26 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
               <tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={{ padding: '0.75rem' }}>
                   <div>
-                    <div style={{ fontWeight: 600 }}>
-                      {sub.profiles?.full_name || 'Unknown'}
-                    </div>
-                    <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                      {sub.profiles?.email}
-                    </div>
+                    <div style={{ fontWeight: 600 }}>{sub.profiles?.full_name || 'Unknown'}</div>
+                    <div style={{ fontSize: '0.875rem', color: '#666' }}>{sub.profiles?.email}</div>
                   </div>
                 </td>
                 <td style={{ padding: '0.75rem' }}>
-                  <span style={{
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    background: sub.plan_id === 'pro' ? '#8b5cf6' : sub.plan_id === 'premium' ? '#3b82f6' : '#6b7280',
-                    color: 'white'
-                  }}>
+                  <span
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background:
+                        sub.plan_id === 'pro'
+                          ? '#8b5cf6'
+                          : sub.plan_id === 'premium'
+                          ? '#3b82f6'
+                          : '#6b7280',
+                      color: 'white'
+                    }}
+                  >
                     {sub.plan_id?.toUpperCase()}
                   </span>
                 </td>
@@ -246,46 +265,59 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
                   {formatCurrency(sub.customer_lifetime_value)}
                 </td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                  <div style={{
-                    width: '60px',
-                    height: '8px',
-                    background: '#e5e7eb',
-                    borderRadius: '4px',
-                    margin: '0 auto',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      width: `${sub.engagement_score || 0}%`,
-                      height: '100%',
-                      background: sub.engagement_score >= 70 ? '#10b981' : sub.engagement_score >= 40 ? '#f59e0b' : '#ef4444',
-                      borderRadius: '4px'
-                    }} />
+                  <div
+                    style={{
+                      width: '60px',
+                      height: '8px',
+                      background: '#e5e7eb',
+                      borderRadius: '4px',
+                      margin: '0 auto',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${sub.engagement_score || 0}%`,
+                        height: '100%',
+                        background:
+                          sub.engagement_score >= 70
+                            ? '#10b981'
+                            : sub.engagement_score >= 40
+                            ? '#f59e0b'
+                            : '#ef4444',
+                        borderRadius: '4px'
+                      }}
+                    />
                   </div>
                   <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
                     {Math.round(sub.engagement_score || 0)}%
                   </div>
                 </td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                  <span style={{
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    background: getChurnRiskColor(sub.churn_risk_score),
-                    color: 'white'
-                  }}>
+                  <span
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background: getChurnRiskColor(sub.churn_risk_score),
+                      color: 'white'
+                    }}
+                  >
                     {getChurnRiskLabel(sub.churn_risk_score)}
                   </span>
                 </td>
                 <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                  <span style={{
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    background: sub.subscriptions?.status === 'active' ? '#10b981' : '#ef4444',
-                    color: 'white'
-                  }}>
+                  <span
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      background: sub.subscriptions?.status === 'active' ? '#10b981' : '#ef4444',
+                      color: 'white'
+                    }}
+                  >
                     {sub.subscriptions?.status?.toUpperCase()}
                   </span>
                 </td>
@@ -299,8 +331,8 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
 
   if (!currentUser || (currentUser.role !== 'super-admin' && currentUser.role !== 'admin')) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <h3>Access Denied</h3>
           <p>You don't have permission to view subscription metrics.</p>
           <button onClick={() => setPage('dashboard')}>Back to Dashboard</button>
@@ -311,8 +343,8 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading subscription metrics...</p>
         </div>
       </div>
@@ -320,17 +352,24 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Subscription Metrics</h2>
-        <button className="back-button" onClick={() => setPage('revenue-analytics')}>
+        <button className='back-button' onClick={() => setPage('revenue-analytics')}>
           Back to Revenue Analytics
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem'
+          }}
+        >
           {renderMetricCard(
             'Monthly Recurring Revenue',
             formatCurrency(metrics.totalMRR),
@@ -357,12 +396,19 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+            gap: '2rem',
+            marginBottom: '2rem'
+          }}
+        >
           {/* Plan Breakdown */}
           {renderPlanBreakdown()}
 
           {/* Quick Stats */}
-          <div className="card">
+          <div className='card'>
             <h3>Quick Stats</h3>
             <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -390,9 +436,13 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Avg Engagement Score:</span>
                 <span style={{ fontWeight: 600 }}>
-                  {subscriptions.length > 0 
-                    ? Math.round(subscriptions.reduce((sum, s) => sum + (s.engagement_score || 0), 0) / subscriptions.length)
-                    : 0}%
+                  {subscriptions.length > 0
+                    ? Math.round(
+                        subscriptions.reduce((sum, s) => sum + (s.engagement_score || 0), 0) /
+                          subscriptions.length
+                      )
+                    : 0}
+                  %
                 </span>
               </div>
             </div>
@@ -403,7 +453,7 @@ function SubscriptionMetricsDashboard({ currentUser, setPage }) {
         {renderSubscriptionTable()}
 
         {/* Actions */}
-        <div className="card">
+        <div className='card'>
           <h3>Actions</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <button

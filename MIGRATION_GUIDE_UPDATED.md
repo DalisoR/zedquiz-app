@@ -9,10 +9,12 @@ The error you encountered is because `update_updated_at_column()` is a shared fu
 ### Step 1: Use the Final Migration
 
 1. **Open Supabase Dashboard**
+
    - Go to your Supabase project
    - Navigate to **SQL Editor**
 
 2. **Execute the Final Migration**
+
    - Copy the entire contents of `005_payments_subscriptions_final.sql`
    - Paste into the SQL Editor
    - Click **Run**
@@ -30,6 +32,7 @@ The error you encountered is because `update_updated_at_column()` is a shared fu
 If you need to clean up payment tables only:
 
 1. **Run Safe Cleanup**
+
    ```sql
    -- Copy contents of cleanup_payments_safe.sql and run it
    ```
@@ -50,11 +53,13 @@ The final migration is designed to handle existing objects, so you can often jus
 ## 📋 Files Available
 
 1. **`005_payments_subscriptions_final.sql`** ⭐ **Use This One**
+
    - Handles shared functions properly
    - Safe to run multiple times
    - Preserves existing system functions
 
-2. **`cleanup_payments_safe.sql`** 
+2. **`cleanup_payments_safe.sql`**
+
    - Safe cleanup that preserves shared functions
    - Only use if you need to reset payment tables
 
@@ -64,6 +69,7 @@ The final migration is designed to handle existing objects, so you can often jus
 ## ✅ What the Final Migration Does
 
 ### Smart Function Handling
+
 ```sql
 -- Only creates the function if it doesn't exist
 DO $$
@@ -75,6 +81,7 @@ END $$;
 ```
 
 ### Safe Policy Management
+
 ```sql
 -- Drops and recreates policies safely
 DROP POLICY IF EXISTS "Users can view their own payments" ON payments;
@@ -82,8 +89,9 @@ CREATE POLICY "Users can view their own payments" ON payments ...
 ```
 
 ### Complete System Setup
+
 - ✅ 4 payment tables
-- ✅ 4 subscription functions  
+- ✅ 4 subscription functions
 - ✅ All RLS policies
 - ✅ All indexes and triggers
 - ✅ Preserves existing system functions
@@ -104,15 +112,17 @@ NOTICE: All RLS policies and indexes have been applied.
 ### If You Still Get Errors
 
 1. **Check which tables exist**
+
    ```sql
-   SELECT table_name FROM information_schema.tables 
-   WHERE table_schema = 'public' 
+   SELECT table_name FROM information_schema.tables
+   WHERE table_schema = 'public'
    AND table_name IN ('payments', 'subscriptions', 'subscription_usage', 'payment_webhooks');
    ```
 
 2. **Check which functions exist**
+
    ```sql
-   SELECT proname FROM pg_proc 
+   SELECT proname FROM pg_proc
    WHERE proname IN ('check_user_subscription', 'record_subscription_usage', 'cancel_subscription', 'expire_subscriptions');
    ```
 
@@ -123,7 +133,7 @@ NOTICE: All RLS policies and indexes have been applied.
 Your system will have:
 
 - **Complete Payment Processing** with PesaPal
-- **Advanced Subscription Management** 
+- **Advanced Subscription Management**
 - **Real-time Usage Tracking**
 - **Professional Receipt Generation**
 - **All existing functions preserved**

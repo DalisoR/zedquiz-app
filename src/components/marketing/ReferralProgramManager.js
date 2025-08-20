@@ -34,7 +34,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch referral programs
       const { data: programsData, error: programsError } = await supabase
         .from('referral_program')
@@ -48,19 +48,20 @@ function ReferralProgramManager({ currentUser, setPage }) {
       if (activeTab === 'referrals') {
         const { data: referralsData, error: referralsError } = await supabase
           .from('referrals')
-          .select(`
+          .select(
+            `
             *,
             referrer:referrer_id(full_name, email),
             referee:referee_id(full_name, email),
             referral_program(name)
-          `)
+          `
+          )
           .order('referred_at', { ascending: false })
           .limit(100);
 
         if (referralsError) throw referralsError;
         setReferrals(referralsData || []);
       }
-
     } catch (err) {
       console.error('Error fetching data:', err);
       showError('Failed to load referral data');
@@ -69,15 +70,17 @@ function ReferralProgramManager({ currentUser, setPage }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     try {
       const programData = {
         ...formData,
         referrer_reward_value: parseFloat(formData.referrer_reward_value),
         referee_reward_value: parseFloat(formData.referee_reward_value),
-        minimum_referee_payment: formData.minimum_referee_payment ? parseFloat(formData.minimum_referee_payment) : 0,
+        minimum_referee_payment: formData.minimum_referee_payment
+          ? parseFloat(formData.minimum_referee_payment)
+          : 0,
         reward_cap: formData.reward_cap ? parseFloat(formData.reward_cap) : null,
         valid_until: formData.valid_until || null
       };
@@ -88,14 +91,12 @@ function ReferralProgramManager({ currentUser, setPage }) {
           .from('referral_program')
           .update(programData)
           .eq('id', editingProgram.id);
-        
+
         if (error) throw error;
         result = 'updated';
       } else {
-        const { error } = await supabase
-          .from('referral_program')
-          .insert([programData]);
-        
+        const { error } = await supabase.from('referral_program').insert([programData]);
+
         if (error) throw error;
         result = 'created';
       }
@@ -126,7 +127,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
     });
   };
 
-  const handleEdit = (program) => {
+  const handleEdit = program => {
     setEditingProgram(program);
     setFormData({
       name: program.name,
@@ -143,7 +144,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
     setShowCreateModal(true);
   };
 
-  const handleToggleActive = async (program) => {
+  const handleToggleActive = async program => {
     try {
       const { error } = await supabase
         .from('referral_program')
@@ -175,35 +176,42 @@ function ReferralProgramManager({ currentUser, setPage }) {
     }
   };
 
-  const getStatusColor = (program) => {
+  const getStatusColor = program => {
     if (!program.is_active) return '#6b7280';
-    
+
     const now = new Date();
     const validFrom = new Date(program.valid_from);
     const validUntil = program.valid_until ? new Date(program.valid_until) : null;
-    
+
     if (now < validFrom) return '#f59e0b';
     if (validUntil && now > validUntil) return '#ef4444';
-    
+
     return '#10b981';
   };
 
-  const getStatusText = (program) => {
+  const getStatusText = program => {
     if (!program.is_active) return 'Inactive';
-    
+
     const now = new Date();
     const validFrom = new Date(program.valid_from);
     const validUntil = program.valid_until ? new Date(program.valid_until) : null;
-    
+
     if (now < validFrom) return 'Scheduled';
     if (validUntil && now > validUntil) return 'Expired';
-    
+
     return 'Active';
   };
 
   const renderProgramsTab = () => (
-    <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+    <div className='card'>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '1rem'
+        }}
+      >
         <h3>Referral Programs ({programs.length})</h3>
         <button
           onClick={() => {
@@ -216,7 +224,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
           Create Program
         </button>
       </div>
-      
+
       {programs.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🤝</div>
@@ -230,7 +238,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
         </div>
       ) : (
         <div style={{ display: 'grid', gap: '1rem' }}>
-          {programs.map((program) => (
+          {programs.map(program => (
             <div
               key={program.id}
               style={{
@@ -240,15 +248,18 @@ function ReferralProgramManager({ currentUser, setPage }) {
                 background: 'white'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  marginBottom: '1rem'
+                }}
+              >
                 <div>
-                  <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>
-                    {program.name}
-                  </h4>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem' }}>{program.name}</h4>
                   {program.description && (
-                    <p style={{ margin: '0 0 1rem 0', color: '#666' }}>
-                      {program.description}
-                    </p>
+                    <p style={{ margin: '0 0 1rem 0', color: '#666' }}>{program.description}</p>
                   )}
                 </div>
                 <span
@@ -265,7 +276,14 @@ function ReferralProgramManager({ currentUser, setPage }) {
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
                 <div>
                   <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.25rem' }}>
                     Referrer Reward
@@ -336,9 +354,9 @@ function ReferralProgramManager({ currentUser, setPage }) {
   );
 
   const renderReferralsTab = () => (
-    <div className="card">
+    <div className='card'>
       <h3>Recent Referrals ({referrals.length})</h3>
-      
+
       {referrals.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
@@ -358,7 +376,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
               </tr>
             </thead>
             <tbody>
-              {referrals.map((referral) => (
+              {referrals.map(referral => (
                 <tr key={referral.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '0.75rem' }}>
                     <div style={{ fontWeight: 600 }}>
@@ -391,8 +409,12 @@ function ReferralProgramManager({ currentUser, setPage }) {
                         borderRadius: '20px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        background: referral.status === 'completed' ? '#10b981' : 
-                                   referral.status === 'rewarded' ? '#3b82f6' : '#f59e0b',
+                        background:
+                          referral.status === 'completed'
+                            ? '#10b981'
+                            : referral.status === 'rewarded'
+                            ? '#3b82f6'
+                            : '#f59e0b',
                         color: 'white'
                       }}
                     >
@@ -434,8 +456,8 @@ function ReferralProgramManager({ currentUser, setPage }) {
 
   if (!currentUser || (currentUser.role !== 'super-admin' && currentUser.role !== 'admin')) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <h3>Access Denied</h3>
           <p>You don't have permission to manage referral programs.</p>
           <button onClick={() => setPage('dashboard')}>Back to Dashboard</button>
@@ -445,33 +467,33 @@ function ReferralProgramManager({ currentUser, setPage }) {
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Referral Program Manager</h2>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <div className="tabs">
-            <button 
+          <div className='tabs'>
+            <button
               className={`tab-button ${activeTab === 'programs' ? 'active' : ''}`}
               onClick={() => setActiveTab('programs')}
             >
               Programs
             </button>
-            <button 
+            <button
               className={`tab-button ${activeTab === 'referrals' ? 'active' : ''}`}
               onClick={() => setActiveTab('referrals')}
             >
               Referrals
             </button>
           </div>
-          <button className="back-button" onClick={() => setPage('super-admin')}>
+          <button className='back-button' onClick={() => setPage('super-admin')}>
             Back to Admin
           </button>
         </div>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {loading ? (
-          <div className="card">
+          <div className='card'>
             <p>Loading referral data...</p>
           </div>
         ) : (
@@ -484,77 +506,92 @@ function ReferralProgramManager({ currentUser, setPage }) {
 
       {/* Create/Edit Modal */}
       {showCreateModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '600px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
             <h3 style={{ margin: '0 0 1.5rem 0' }}>
               {editingProgram ? 'Edit Referral Program' : 'Create Referral Program'}
             </h3>
-            
+
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Program Name *</label>
                 <input
-                  type="text"
+                  type='text'
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  placeholder="Student Referral Program"
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  placeholder='Student Referral Program'
                   required
                 />
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Description</label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Refer friends and earn rewards when they subscribe"
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  placeholder='Refer friends and earn rewards when they subscribe'
                   rows={2}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
                 <div>
                   <h4 style={{ margin: '0 0 1rem 0', color: '#3b82f6' }}>Referrer Reward</h4>
-                  <div className="form-group">
+                  <div className='form-group'>
                     <label>Reward Type</label>
                     <select
                       value={formData.referrer_reward_type}
-                      onChange={(e) => setFormData({...formData, referrer_reward_type: e.target.value})}
+                      onChange={e =>
+                        setFormData({ ...formData, referrer_reward_type: e.target.value })
+                      }
                     >
-                      <option value="percentage">Percentage</option>
-                      <option value="fixed_amount">Fixed Amount</option>
-                      <option value="free_months">Free Months</option>
-                      <option value="points">Points</option>
+                      <option value='percentage'>Percentage</option>
+                      <option value='fixed_amount'>Fixed Amount</option>
+                      <option value='free_months'>Free Months</option>
+                      <option value='points'>Points</option>
                     </select>
                   </div>
-                  <div className="form-group">
+                  <div className='form-group'>
                     <label>Reward Value *</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type='number'
+                      step='0.01'
+                      min='0'
                       value={formData.referrer_reward_value}
-                      onChange={(e) => setFormData({...formData, referrer_reward_value: e.target.value})}
+                      onChange={e =>
+                        setFormData({ ...formData, referrer_reward_value: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -562,83 +599,110 @@ function ReferralProgramManager({ currentUser, setPage }) {
 
                 <div>
                   <h4 style={{ margin: '0 0 1rem 0', color: '#10b981' }}>Referee Reward</h4>
-                  <div className="form-group">
+                  <div className='form-group'>
                     <label>Reward Type</label>
                     <select
                       value={formData.referee_reward_type}
-                      onChange={(e) => setFormData({...formData, referee_reward_type: e.target.value})}
+                      onChange={e =>
+                        setFormData({ ...formData, referee_reward_type: e.target.value })
+                      }
                     >
-                      <option value="percentage">Percentage</option>
-                      <option value="fixed_amount">Fixed Amount</option>
-                      <option value="free_months">Free Months</option>
-                      <option value="points">Points</option>
+                      <option value='percentage'>Percentage</option>
+                      <option value='fixed_amount'>Fixed Amount</option>
+                      <option value='free_months'>Free Months</option>
+                      <option value='points'>Points</option>
                     </select>
                   </div>
-                  <div className="form-group">
+                  <div className='form-group'>
                     <label>Reward Value *</label>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type='number'
+                      step='0.01'
+                      min='0'
                       value={formData.referee_reward_value}
-                      onChange={(e) => setFormData({...formData, referee_reward_value: e.target.value})}
+                      onChange={e =>
+                        setFormData({ ...formData, referee_reward_value: e.target.value })
+                      }
                       required
                     />
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div className='form-group'>
                   <label>Minimum Referee Payment (ZMW)</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type='number'
+                    step='0.01'
+                    min='0'
                     value={formData.minimum_referee_payment}
-                    onChange={(e) => setFormData({...formData, minimum_referee_payment: e.target.value})}
-                    placeholder="0"
+                    onChange={e =>
+                      setFormData({ ...formData, minimum_referee_payment: e.target.value })
+                    }
+                    placeholder='0'
                   />
                 </div>
 
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Reward Cap (ZMW)</label>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type='number'
+                    step='0.01'
+                    min='0'
                     value={formData.reward_cap}
-                    onChange={(e) => setFormData({...formData, reward_cap: e.target.value})}
-                    placeholder="No cap"
+                    onChange={e => setFormData({ ...formData, reward_cap: e.target.value })}
+                    placeholder='No cap'
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                <div className="form-group">
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  marginBottom: '1rem'
+                }}
+              >
+                <div className='form-group'>
                   <label>Valid From *</label>
                   <input
-                    type="date"
+                    type='date'
                     value={formData.valid_from}
-                    onChange={(e) => setFormData({...formData, valid_from: e.target.value})}
+                    onChange={e => setFormData({ ...formData, valid_from: e.target.value })}
                     required
                   />
                 </div>
 
-                <div className="form-group">
+                <div className='form-group'>
                   <label>Valid Until</label>
                   <input
-                    type="date"
+                    type='date'
                     value={formData.valid_until}
-                    onChange={(e) => setFormData({...formData, valid_until: e.target.value})}
+                    onChange={e => setFormData({ ...formData, valid_until: e.target.value })}
                     min={formData.valid_from}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'flex-end',
+                  marginTop: '2rem'
+                }}
+              >
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setShowCreateModal(false);
                     setEditingProgram(null);
@@ -653,7 +717,7 @@ function ReferralProgramManager({ currentUser, setPage }) {
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type='submit'
                   style={{
                     width: 'auto',
                     padding: '0.75rem 1.5rem',

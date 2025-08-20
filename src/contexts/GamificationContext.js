@@ -14,7 +14,9 @@ export const GamificationProvider = ({ children }) => {
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       // Fetch user points
@@ -30,18 +32,22 @@ export const GamificationProvider = ({ children }) => {
       // Fetch user badges with badge details
       const { data: badgesData, error: badgesError } = await supabase
         .from('user_badges')
-        .select(`
+        .select(
+          `
           *,
           badge:badges(*)
-        `)
+        `
+        )
         .eq('user_id', user.id);
 
       if (badgesError) throw badgesError;
       if (badgesData) {
-        setBadges(badgesData.map(ub => ({
-          ...ub.badge,
-          earnedAt: ub.earned_at
-        })));
+        setBadges(
+          badgesData.map(ub => ({
+            ...ub.badge,
+            earnedAt: ub.earned_at
+          }))
+        );
       }
 
       // Fetch recent transactions
@@ -54,7 +60,6 @@ export const GamificationProvider = ({ children }) => {
 
       if (transactionsError) throw transactionsError;
       if (transactionsData) setTransactions(transactionsData);
-
     } catch (err) {
       console.error('Error fetching gamification data:', err);
       setError(err.message);
@@ -66,7 +71,9 @@ export const GamificationProvider = ({ children }) => {
   // Add points to user's account
   const addPoints = async (amount, source, sourceId = null) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
       // Start a transaction
@@ -78,16 +85,16 @@ export const GamificationProvider = ({ children }) => {
       });
 
       if (error) throw error;
-      
+
       // Update local state
       setPoints(data.new_balance);
-      
+
       // Check for new badges
       await checkForNewBadges(user.id, data.new_balance);
-      
+
       // Refresh data
       await fetchUserData();
-      
+
       return data;
     } catch (err) {
       console.error('Error adding points:', err);
@@ -119,20 +126,24 @@ export const GamificationProvider = ({ children }) => {
         // Refresh badges
         const { data: updatedBadges } = await supabase
           .from('user_badges')
-          .select(`
+          .select(
+            `
             *,
             badge:badges(*)
-          `)
+          `
+          )
           .eq('user_id', userId);
 
-        setBadges(updatedBadges.map(ub => ({
-          ...ub.badge,
-          earnedAt: ub.earned_at
-        })));
+        setBadges(
+          updatedBadges.map(ub => ({
+            ...ub.badge,
+            earnedAt: ub.earned_at
+          }))
+        );
 
         return newBadges;
       }
-      
+
       return [];
     } catch (err) {
       console.error('Error checking for badges:', err);

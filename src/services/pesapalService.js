@@ -4,14 +4,17 @@
 class PesaPalService {
   constructor() {
     // PesaPal API Configuration
-    this.baseURL = process.env.REACT_APP_PESAPAL_SANDBOX === 'true' 
-      ? 'https://cybqa.pesapal.com/pesapalv3' 
-      : 'https://pay.pesapal.com/v3';
-    
+    this.baseURL =
+      process.env.REACT_APP_PESAPAL_SANDBOX === 'true'
+        ? 'https://cybqa.pesapal.com/pesapalv3'
+        : 'https://pay.pesapal.com/v3';
+
     this.consumerKey = process.env.REACT_APP_PESAPAL_CONSUMER_KEY;
     this.consumerSecret = process.env.REACT_APP_PESAPAL_CONSUMER_SECRET;
-    this.callbackURL = process.env.REACT_APP_PESAPAL_CALLBACK_URL || `${window.location.origin}/payment-callback`;
-    this.ipnURL = process.env.REACT_APP_PESAPAL_IPN_URL || `${window.location.origin}/api/pesapal-ipn`;
+    this.callbackURL =
+      process.env.REACT_APP_PESAPAL_CALLBACK_URL || `${window.location.origin}/payment-callback`;
+    this.ipnURL =
+      process.env.REACT_APP_PESAPAL_IPN_URL || `${window.location.origin}/api/pesapal-ipn`;
   }
 
   // Generate authentication token
@@ -21,7 +24,7 @@ class PesaPalService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          Accept: 'application/json'
         },
         body: JSON.stringify({
           consumer_key: this.consumerKey,
@@ -30,17 +33,19 @@ class PesaPalService {
       });
 
       const data = await response.json();
-      
+
       if (data.status === '200' && data.token) {
         // Store token with expiry
         const tokenData = {
           token: data.token,
-          expiresAt: Date.now() + (data.expiryDate ? new Date(data.expiryDate).getTime() - Date.now() : 3600000) // 1 hour default
+          expiresAt:
+            Date.now() +
+            (data.expiryDate ? new Date(data.expiryDate).getTime() - Date.now() : 3600000) // 1 hour default
         };
         localStorage.setItem('pesapal_token', JSON.stringify(tokenData));
         return data.token;
       }
-      
+
       throw new Error(data.message || 'Failed to get auth token');
     } catch (error) {
       console.error('PesaPal Auth Error:', error);
@@ -51,14 +56,14 @@ class PesaPalService {
   // Get valid token (from cache or request new)
   async getValidToken() {
     const stored = localStorage.getItem('pesapal_token');
-    
+
     if (stored) {
       const tokenData = JSON.parse(stored);
       if (Date.now() < tokenData.expiresAt) {
         return tokenData.token;
       }
     }
-    
+
     return await this.getAuthToken();
   }
 
@@ -66,13 +71,13 @@ class PesaPalService {
   async registerIPN() {
     try {
       const token = await this.getValidToken();
-      
+
       const response = await fetch(`${this.baseURL}/api/URLSetup/RegisterIPN`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
           url: this.ipnURL,
@@ -81,12 +86,12 @@ class PesaPalService {
       });
 
       const data = await response.json();
-      
+
       if (data.status === '200') {
         localStorage.setItem('pesapal_ipn_id', data.ipn_id);
         return data.ipn_id;
       }
-      
+
       throw new Error(data.message || 'Failed to register IPN');
     } catch (error) {
       console.error('PesaPal IPN Registration Error:', error);
@@ -98,7 +103,7 @@ class PesaPalService {
   async createSubscriptionOrder(subscriptionData) {
     try {
       const token = await this.getValidToken();
-      
+
       // Ensure IPN is registered
       let ipnId = localStorage.getItem('pesapal_ipn_id');
       if (!ipnId) {
@@ -130,14 +135,14 @@ class PesaPalService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
+          Accept: 'application/json',
+          Authorization: `Bearer ${token}`
         },
         body: JSON.stringify(orderData)
       });
 
       const data = await response.json();
-      
+
       if (data.status === '200' && data.redirect_url) {
         return {
           success: true,
@@ -146,7 +151,7 @@ class PesaPalService {
           merchantReference: data.merchant_reference
         };
       }
-      
+
       throw new Error(data.message || 'Failed to create payment order');
     } catch (error) {
       console.error('PesaPal Order Creation Error:', error);
@@ -161,20 +166,20 @@ class PesaPalService {
   async checkTransactionStatus(orderTrackingId) {
     try {
       const token = await this.getValidToken();
-      
+
       const response = await fetch(
         `${this.baseURL}/api/Transactions/GetTransactionStatus?orderTrackingId=${orderTrackingId}`,
         {
           method: 'GET',
           headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${token}`
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`
           }
         }
       );
 
       const data = await response.json();
-      
+
       if (data.status === '200') {
         return {
           success: true,
@@ -187,7 +192,7 @@ class PesaPalService {
           confirmationCode: data.confirmation_code
         };
       }
-      
+
       throw new Error(data.message || 'Failed to check transaction status');
     } catch (error) {
       console.error('PesaPal Status Check Error:', error);
@@ -237,15 +242,15 @@ class PesaPalService {
   // Validate environment configuration
   validateConfig() {
     const errors = [];
-    
+
     if (!this.consumerKey) {
       errors.push('REACT_APP_PESAPAL_CONSUMER_KEY is required');
     }
-    
+
     if (!this.consumerSecret) {
       errors.push('REACT_APP_PESAPAL_CONSUMER_SECRET is required');
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors

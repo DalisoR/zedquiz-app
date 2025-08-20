@@ -22,17 +22,19 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      
+
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - parseInt(dateRange));
 
       // Get dashboard summary
-      const { data: dashboardSummary, error: dashboardError } = await supabase
-        .rpc('get_revenue_dashboard', {
+      const { data: dashboardSummary, error: dashboardError } = await supabase.rpc(
+        'get_revenue_dashboard',
+        {
           start_date: startDate.toISOString().split('T')[0],
           end_date: endDate.toISOString().split('T')[0]
-        });
+        }
+      );
 
       if (dashboardError) throw dashboardError;
       setDashboardData(dashboardSummary);
@@ -52,10 +54,12 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
       // Get subscription metrics
       const { data: subMetrics, error: subError } = await supabase
         .from('subscription_metrics')
-        .select(`
+        .select(
+          `
           *,
           profiles!subscription_metrics_user_id_fkey(full_name, email)
-        `)
+        `
+        )
         .order('customer_lifetime_value', { ascending: false })
         .limit(10);
 
@@ -72,7 +76,6 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
 
       if (paymentError) throw paymentError;
       setPaymentAnalytics(paymentData || []);
-
     } catch (err) {
       console.error('Error fetching analytics data:', err);
       showError('Failed to load analytics data');
@@ -81,7 +84,7 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
     }
   };
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = amount => {
     return new Intl.NumberFormat('en-ZM', {
       style: 'currency',
       currency: 'ZMW',
@@ -89,7 +92,7 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
     }).format(amount || 0);
   };
 
-  const formatPercentage = (value) => {
+  const formatPercentage = value => {
     return `${(value || 0).toFixed(1)}%`;
   };
 
@@ -105,10 +108,12 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
   };
 
   const renderMetricCard = (title, value, subtitle, trend, icon) => (
-    <div className="card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+    <div className='card' style={{ textAlign: 'center', padding: '1.5rem' }}>
       <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{icon}</div>
       <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem', color: '#666' }}>{title}</h3>
-      <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50', marginBottom: '0.5rem' }}>
+      <div
+        style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2c3e50', marginBottom: '0.5rem' }}
+      >
         {value}
       </div>
       {subtitle && (
@@ -117,11 +122,13 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
         </div>
       )}
       {trend !== undefined && (
-        <div style={{ 
-          fontSize: '0.875rem', 
-          color: getMetricColor(trend),
-          fontWeight: 600
-        }}>
+        <div
+          style={{
+            fontSize: '0.875rem',
+            color: getMetricColor(trend),
+            fontWeight: 600
+          }}
+        >
           {trend > 0 ? '↗' : trend < 0 ? '↘' : '→'} {formatPercentage(Math.abs(trend))}
         </div>
       )}
@@ -132,7 +139,7 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
     if (!revenueData.length) return <p>No revenue data available</p>;
 
     const maxRevenue = Math.max(...revenueData.map(d => d.total_revenue || 0));
-    
+
     return (
       <div style={{ padding: '1rem' }}>
         <h4 style={{ margin: '0 0 1rem 0' }}>Daily Revenue Trend</h4>
@@ -155,7 +162,15 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
             );
           })}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '0.75rem', color: '#666' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '0.5rem',
+            fontSize: '0.75rem',
+            color: '#666'
+          }}
+        >
           <span>{revenueData[0]?.date}</span>
           <span>{revenueData[revenueData.length - 1]?.date}</span>
         </div>
@@ -164,7 +179,7 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
   };
 
   const renderTopCustomers = () => (
-    <div className="card">
+    <div className='card'>
       <h3>Top Customers by Lifetime Value</h3>
       <div style={{ display: 'grid', gap: '0.5rem', marginTop: '1rem' }}>
         {subscriptionMetrics.slice(0, 5).map((customer, index) => (
@@ -217,7 +232,7 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
     }, {});
 
     return (
-      <div className="card">
+      <div className='card'>
         <h3>Payment Method Performance</h3>
         <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
           {Object.entries(paymentMethods).map(([method, data]) => (
@@ -241,13 +256,18 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: 600 }}>
-                  {formatCurrency(data.total_amount)}
-                </div>
-                <div style={{ 
-                  fontSize: '0.875rem', 
-                  color: data.success_rate >= 95 ? '#10b981' : data.success_rate >= 90 ? '#f59e0b' : '#ef4444'
-                }}>
+                <div style={{ fontWeight: 600 }}>{formatCurrency(data.total_amount)}</div>
+                <div
+                  style={{
+                    fontSize: '0.875rem',
+                    color:
+                      data.success_rate >= 95
+                        ? '#10b981'
+                        : data.success_rate >= 90
+                        ? '#f59e0b'
+                        : '#ef4444'
+                  }}
+                >
                   {formatPercentage(data.success_rate)} success
                 </div>
               </div>
@@ -260,8 +280,8 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
 
   if (!currentUser || (currentUser.role !== 'super-admin' && currentUser.role !== 'admin')) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <h3>Access Denied</h3>
           <p>You don't have permission to view revenue analytics.</p>
           <button onClick={() => setPage('dashboard')}>Back to Dashboard</button>
@@ -272,8 +292,8 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading analytics data...</p>
         </div>
       </div>
@@ -281,29 +301,36 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Revenue Analytics</h2>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
+            onChange={e => setDateRange(e.target.value)}
             style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #e5e7eb' }}
           >
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-            <option value="365">Last year</option>
+            <option value='7'>Last 7 days</option>
+            <option value='30'>Last 30 days</option>
+            <option value='90'>Last 90 days</option>
+            <option value='365'>Last year</option>
           </select>
-          <button className="back-button" onClick={() => setPage('super-admin')}>
+          <button className='back-button' onClick={() => setPage('super-admin')}>
             Back to Admin
           </button>
         </div>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Key Metrics */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '1rem',
+            marginBottom: '2rem'
+          }}
+        >
           {renderMetricCard(
             'Total Revenue',
             formatCurrency(dashboardData?.total_revenue),
@@ -335,11 +362,15 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
         </div>
 
         {/* Revenue Chart */}
-        <div className="card">
-          {renderRevenueChart()}
-        </div>
+        <div className='card'>{renderRevenueChart()}</div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+            gap: '2rem'
+          }}
+        >
           {/* Top Customers */}
           {renderTopCustomers()}
 
@@ -348,7 +379,7 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
         </div>
 
         {/* Detailed Analytics Table */}
-        <div className="card">
+        <div className='card'>
           <h3>Daily Revenue Breakdown</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -363,35 +394,38 @@ function RevenueAnalyticsDashboard({ currentUser, setPage }) {
                 </tr>
               </thead>
               <tbody>
-                {revenueData.slice(-10).reverse().map((day, index) => (
-                  <tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '0.75rem' }}>
-                      {new Date(day.date).toLocaleDateString()}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600 }}>
-                      {formatCurrency(day.total_revenue)}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                      {day.new_subscriptions || 0}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                      {day.cancelled_subscriptions || 0}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                      {day.active_users || 0}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                      {day.new_users || 0}
-                    </td>
-                  </tr>
-                ))}
+                {revenueData
+                  .slice(-10)
+                  .reverse()
+                  .map((day, index) => (
+                    <tr key={index} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <td style={{ padding: '0.75rem' }}>
+                        {new Date(day.date).toLocaleDateString()}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: 600 }}>
+                        {formatCurrency(day.total_revenue)}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {day.new_subscriptions || 0}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {day.cancelled_subscriptions || 0}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {day.active_users || 0}
+                      </td>
+                      <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                        {day.new_users || 0}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="card">
+        <div className='card'>
           <h3>Quick Actions</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <button

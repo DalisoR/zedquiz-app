@@ -7,10 +7,12 @@ This guide will help you set up the payment and subscription system for ZedQuiz.
 ### Step 1: Run the Fixed Migration
 
 1. **Open Supabase Dashboard**
+
    - Go to your Supabase project
    - Navigate to **SQL Editor**
 
 2. **Execute the Migration**
+
    - Copy the entire contents of `005_payments_subscriptions_fixed.sql`
    - Paste into the SQL Editor
    - Click **Run**
@@ -26,6 +28,7 @@ This guide will help you set up the payment and subscription system for ZedQuiz.
 If you get policy or table conflicts:
 
 1. **Run Cleanup Script**
+
    ```sql
    -- Copy contents of cleanup_payments.sql and run it
    ```
@@ -49,18 +52,21 @@ DROP POLICY IF EXISTS "Users can view their own payments" ON payments;
 ## 📋 What Gets Created
 
 ### Tables
+
 - ✅ `payments` - Payment records
-- ✅ `subscriptions` - Active subscriptions  
+- ✅ `subscriptions` - Active subscriptions
 - ✅ `subscription_usage` - Daily usage tracking
 - ✅ `payment_webhooks` - PesaPal webhooks
 
 ### Functions
+
 - ✅ `check_user_subscription()` - Check subscription status
 - ✅ `record_subscription_usage()` - Track usage
 - ✅ `cancel_subscription()` - Handle cancellations
 - ✅ `expire_subscriptions()` - Daily cleanup
 
 ### Security
+
 - ✅ Row Level Security policies
 - ✅ User data protection
 - ✅ Admin-only access controls
@@ -83,11 +89,13 @@ REACT_APP_PESAPAL_IPN_URL=http://localhost:3000/api/pesapal-ipn
 ### 2. Test the System
 
 1. **Start the App**
+
    ```bash
    npm start
    ```
 
 2. **Test Payment Flow**
+
    - Register as a student
    - Go to Subscriptions page
    - Select a plan
@@ -111,15 +119,19 @@ REACT_APP_PESAPAL_IPN_URL=http://localhost:3000/api/pesapal-ipn
 ### Common Issues
 
 **Error: "policy already exists"**
+
 - Solution: Run the cleanup script first
 
 **Error: "table does not exist"**
+
 - Solution: Make sure previous migrations ran successfully
 
 **Error: "function does not exist"**
+
 - Solution: Run the complete fixed migration
 
 **Error: "permission denied"**
+
 - Solution: Check RLS policies are correctly applied
 
 ### Getting Help
@@ -127,10 +139,12 @@ REACT_APP_PESAPAL_IPN_URL=http://localhost:3000/api/pesapal-ipn
 If you encounter issues:
 
 1. **Check Supabase Logs**
+
    - Go to Logs section in Supabase dashboard
    - Look for error details
 
 2. **Verify Table Structure**
+
    - Check Table Editor for created tables
    - Verify columns and relationships
 

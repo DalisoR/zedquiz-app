@@ -22,16 +22,13 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="error-boundary">
-          <div className="error-content">
+        <div className='error-boundary'>
+          <div className='error-content'>
             <h2>Something went wrong.</h2>
             {this.props.fallback || (
               <div>
                 <p>We're sorry for the inconvenience. The error has been logged.</p>
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => window.location.reload()}
-                >
+                <button className='btn btn-primary' onClick={() => window.location.reload()}>
                   Reload Page
                 </button>
               </div>

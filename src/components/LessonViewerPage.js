@@ -32,7 +32,7 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
       if (videoRef.current && currentVideo && !videoRef.current.paused) {
         const currentTime = Math.floor(videoRef.current.currentTime);
         const duration = Math.floor(videoRef.current.duration);
-        
+
         if (duration > 0) {
           updateVideoProgress(currentVideo.id, currentTime, currentTime);
         }
@@ -101,7 +101,10 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
         .from('video_progress')
         .select('*')
         .eq('student_id', currentUser.id)
-        .in('video_id', videos.map(v => v.id));
+        .in(
+          'video_id',
+          videos.map(v => v.id)
+        );
 
       if (error) throw error;
 
@@ -155,7 +158,7 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
       }));
 
       // Show completion message if video just completed
-      if (data.mandatory_completed && (!videoProgress[videoId]?.mandatory_completed)) {
+      if (data.mandatory_completed && !videoProgress[videoId]?.mandatory_completed) {
         showSuccess('Video completed! Great job!');
       }
     } catch (err) {
@@ -165,22 +168,20 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
 
   const trackInteraction = async (type, data = {}) => {
     try {
-      await supabase
-        .from('lesson_interactions')
-        .insert({
-          student_id: currentUser.id,
-          lesson_id: selectedLesson.id,
-          interaction_type: type,
-          interaction_data: data
-        });
+      await supabase.from('lesson_interactions').insert({
+        student_id: currentUser.id,
+        lesson_id: selectedLesson.id,
+        interaction_type: type,
+        interaction_data: data
+      });
     } catch (err) {
       console.error('Error tracking interaction:', err);
     }
   };
 
-  const handleVideoSelect = (video) => {
+  const handleVideoSelect = video => {
     setCurrentVideo(video);
-    
+
     // Resume from last position if available
     setTimeout(() => {
       if (videoRef.current && videoProgress[video.id]?.last_position) {
@@ -193,7 +194,7 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
     if (videoRef.current && currentVideo) {
       const currentTime = Math.floor(videoRef.current.currentTime);
       const duration = Math.floor(videoRef.current.duration);
-      
+
       // Update progress every 10 seconds of watch time
       if (currentTime > 0 && currentTime % 10 === 0) {
         updateVideoProgress(currentVideo.id, currentTime, currentTime);
@@ -201,11 +202,11 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
     }
   };
 
-  const handleAttachmentDownload = async (attachment) => {
+  const handleAttachmentDownload = async attachment => {
     try {
       // Track download
       await trackInteraction('download', { attachment_id: attachment.id });
-      
+
       // Update download count
       await supabase
         .from('lesson_attachments')
@@ -214,7 +215,7 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
 
       // Open file in new tab
       window.open(attachment.file_url, '_blank');
-      
+
       showInfo('Download started');
     } catch (err) {
       console.error('Error downloading attachment:', err);
@@ -222,9 +223,9 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
     }
   };
 
-  const handleAddNote = async (e) => {
+  const handleAddNote = async e => {
     e.preventDefault();
-    
+
     if (!newNote.trim()) return;
 
     try {
@@ -233,7 +234,8 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
         lesson_id: selectedLesson.id,
         video_id: currentVideo?.id || null,
         note_content: newNote.trim(),
-        timestamp_seconds: currentVideo && videoRef.current ? Math.floor(videoRef.current.currentTime) : null
+        timestamp_seconds:
+          currentVideo && videoRef.current ? Math.floor(videoRef.current.currentTime) : null
       };
 
       const { data, error } = await supabase
@@ -254,14 +256,14 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = seconds => {
     if (!seconds) return '0:00';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const formatFileSize = (bytes) => {
+  const formatFileSize = bytes => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
@@ -271,8 +273,8 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading lesson content...</p>
         </div>
       </div>
@@ -281,8 +283,8 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
 
   if (!lesson) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Lesson not found.</p>
           <button onClick={() => setPage('course-overview')}>Back to Course</button>
         </div>
@@ -291,28 +293,28 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>
           {selectedChapter?.title} - Lesson {lesson.order_index}: {lesson.title}
         </h2>
-        <button className="back-button" onClick={() => setPage('course-overview')}>
+        <button className='back-button' onClick={() => setPage('course-overview')}>
           Back to Course
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
           {/* Main Content */}
           <div>
             {/* Video Player */}
             {currentVideo && (
-              <div className="card">
+              <div className='card'>
                 <h3>{currentVideo.title}</h3>
                 {currentVideo.description && (
                   <p style={{ color: '#666', marginBottom: '1rem' }}>{currentVideo.description}</p>
                 )}
-                
+
                 <div style={{ position: 'relative', marginBottom: '1rem' }}>
                   <video
                     ref={videoRef}
@@ -326,23 +328,26 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
                       }
                     }}
                   >
-                    <source src={currentVideo.file_url} type="video/mp4" />
+                    <source src={currentVideo.file_url} type='video/mp4' />
                     Your browser does not support the video tag.
                   </video>
-                  
+
                   {/* Progress Overlay */}
                   {videoProgress[currentVideo.id] && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      background: 'rgba(0,0,0,0.7)',
-                      color: 'white',
-                      padding: '0.5rem',
-                      borderRadius: '4px',
-                      fontSize: '0.875rem'
-                    }}>
-                      Progress: {Math.round(videoProgress[currentVideo.id].completion_percentage || 0)}%
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        padding: '0.5rem',
+                        borderRadius: '4px',
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Progress:{' '}
+                      {Math.round(videoProgress[currentVideo.id].completion_percentage || 0)}%
                       {videoProgress[currentVideo.id].mandatory_completed && (
                         <span style={{ color: '#10b981', marginLeft: '0.5rem' }}>✓ Complete</span>
                       )}
@@ -351,28 +356,33 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
                 </div>
 
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                  Required watch time: {currentVideo.mandatory_watch_percentage}% 
-                  ({formatTime(Math.floor((currentVideo.duration * currentVideo.mandatory_watch_percentage) / 100))})
+                  Required watch time: {currentVideo.mandatory_watch_percentage}% (
+                  {formatTime(
+                    Math.floor(
+                      (currentVideo.duration * currentVideo.mandatory_watch_percentage) / 100
+                    )
+                  )}
+                  )
                 </div>
               </div>
             )}
 
             {/* Lesson Content */}
-            <div className="card">
+            <div className='card'>
               <h3>Lesson Overview</h3>
-              {lesson.description && (
-                <p style={{ marginBottom: '1rem' }}>{lesson.description}</p>
-              )}
-              
+              {lesson.description && <p style={{ marginBottom: '1rem' }}>{lesson.description}</p>}
+
               {lesson.notes_content && (
                 <div>
                   <h4>Lesson Notes</h4>
-                  <div style={{ 
-                    background: '#f9fafb', 
-                    padding: '1rem', 
-                    borderRadius: '8px',
-                    whiteSpace: 'pre-wrap'
-                  }}>
+                  <div
+                    style={{
+                      background: '#f9fafb',
+                      padding: '1rem',
+                      borderRadius: '8px',
+                      whiteSpace: 'pre-wrap'
+                    }}
+                  >
                     {lesson.notes_content}
                   </div>
                 </div>
@@ -381,10 +391,10 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
 
             {/* Attachments */}
             {attachments.length > 0 && (
-              <div className="card">
+              <div className='card'>
                 <h3>Downloadable Resources</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  {attachments.map((attachment) => (
+                  {attachments.map(attachment => (
                     <div
                       key={attachment.id}
                       style={{
@@ -400,15 +410,20 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
                       <div>
                         <h4 style={{ margin: '0 0 0.25rem 0' }}>{attachment.title}</h4>
                         {attachment.description && (
-                          <p style={{ margin: '0 0 0.25rem 0', color: '#666', fontSize: '0.875rem' }}>
+                          <p
+                            style={{ margin: '0 0 0.25rem 0', color: '#666', fontSize: '0.875rem' }}
+                          >
                             {attachment.description}
                           </p>
                         )}
                         <div style={{ fontSize: '0.75rem', color: '#666' }}>
-                          {attachment.file_type.toUpperCase()} • {formatFileSize(attachment.file_size)} • 
-                          Downloaded {attachment.download_count} times
+                          {attachment.file_type.toUpperCase()} •{' '}
+                          {formatFileSize(attachment.file_size)} • Downloaded{' '}
+                          {attachment.download_count} times
                           {attachment.is_mandatory && (
-                            <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>• Required</span>
+                            <span style={{ color: '#ef4444', marginLeft: '0.5rem' }}>
+                              • Required
+                            </span>
                           )}
                         </div>
                       </div>
@@ -434,14 +449,14 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
           <div>
             {/* Video List */}
             {videos.length > 1 && (
-              <div className="card">
+              <div className='card'>
                 <h3>Videos ({videos.length})</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
                   {videos.map((video, index) => {
                     const progress = videoProgress[video.id];
                     const isCompleted = progress?.mandatory_completed;
                     const isCurrent = currentVideo?.id === video.id;
-                    
+
                     return (
                       <div
                         key={video.id}
@@ -455,7 +470,14 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
                           transition: 'all 0.2s'
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            marginBottom: '0.25rem'
+                          }}
+                        >
                           <span style={{ color: isCompleted ? '#10b981' : '#6b7280' }}>
                             {isCompleted ? '✓' : index + 1}
                           </span>
@@ -474,8 +496,15 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
             )}
 
             {/* Notes Section */}
-            <div className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div className='card'>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1rem'
+                }}
+              >
                 <h3>My Notes ({notes.length})</h3>
                 <button
                   onClick={() => setShowNotes(!showNotes)}
@@ -494,12 +523,12 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
               <form onSubmit={handleAddNote} style={{ marginBottom: '1rem' }}>
                 <textarea
                   value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  placeholder="Add a note about this lesson..."
+                  onChange={e => setNewNote(e.target.value)}
+                  placeholder='Add a note about this lesson...'
                   rows={3}
                   style={{ marginBottom: '0.5rem' }}
                 />
-                <button type="submit" style={{ width: '100%', fontSize: '0.875rem' }}>
+                <button type='submit' style={{ width: '100%', fontSize: '0.875rem' }}>
                   Add Note
                 </button>
               </form>
@@ -513,7 +542,7 @@ function LessonViewerPage({ currentUser, selectedLesson, selectedChapter, setPag
                     </p>
                   ) : (
                     <div style={{ display: 'grid', gap: '0.5rem' }}>
-                      {notes.map((note) => (
+                      {notes.map(note => (
                         <div
                           key={note.id}
                           style={{

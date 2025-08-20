@@ -1,6 +1,6 @@
 module.exports = {
   webpack: {
-    configure: (webpackConfig) => {
+    configure: webpackConfig => {
       // Basic configuration without forcing specific module resolution
       return webpackConfig;
     }

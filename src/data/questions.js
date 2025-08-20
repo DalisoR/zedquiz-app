@@ -7,7 +7,8 @@ export const mockQuestions = [
     questionText: 'What is 1/2 + 1/4?',
     questionType: 'Short-Answer',
     correctAnswer: '3/4',
-    explanation: 'To add fractions, you need a common denominator. The common denominator for 2 and 4 is 4. So, 1/2 becomes 2/4. Then, 2/4 + 1/4 = 3/4.'
+    explanation:
+      'To add fractions, you need a common denominator. The common denominator for 2 and 4 is 4. So, 1/2 becomes 2/4. Then, 2/4 + 1/4 = 3/4.'
   },
   {
     id: 2,
@@ -18,7 +19,8 @@ export const mockQuestions = [
     questionType: 'Multiple-Choice',
     options: { A: 'boy', B: 'river', C: 'Zambia', D: 'school' },
     correctAnswer: 'C',
-    explanation: 'A proper noun is a name used for an individual person, place, or organization, spelled with an initial capital letter. Zambia is the name of a specific country.'
+    explanation:
+      'A proper noun is a name used for an individual person, place, or organization, spelled with an initial capital letter. Zambia is the name of a specific country.'
   },
   {
     id: 3,
@@ -28,7 +30,8 @@ export const mockQuestions = [
     questionText: 'The powerhouse of the cell is the mitochondria.',
     questionType: 'True/False',
     correctAnswer: 'True',
-    explanation: 'Mitochondria are responsible for generating most of the cell\'s supply of adenosine triphosphate (ATP), used as a source of chemical energy.'
+    explanation:
+      "Mitochondria are responsible for generating most of the cell's supply of adenosine triphosphate (ATP), used as a source of chemical energy."
   },
   {
     id: 4,
@@ -48,6 +51,7 @@ export const mockQuestions = [
     questionText: 'What is the pH of a neutral solution?',
     questionType: 'Short-Answer',
     correctAnswer: '7',
-    explanation: 'A pH of 7 is considered neutral. Anything below 7 is acidic, and anything above 7 is alkaline (basic).'
+    explanation:
+      'A pH of 7 is considered neutral. Anything below 7 is acidic, and anything above 7 is alkaline (basic).'
   }
 ];

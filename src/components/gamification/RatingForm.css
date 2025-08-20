@@ -17,7 +17,7 @@
   margin-bottom: 1rem;
 }
 
-.star-rating input[type="radio"] {
+.star-rating input[type='radio'] {
   display: none; /* Hide the actual radio button */
 }
 

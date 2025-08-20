@@ -50,10 +50,12 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
       // Fetch quiz with questions
       const { data: quizData, error: quizError } = await supabase
         .from('chapter_quizzes')
-        .select(`
+        .select(
+          `
           *,
           questions:chapter_quiz_questions(*)
-        `)
+        `
+        )
         .eq('chapter_id', selectedChapter.id)
         .eq('is_published', true)
         .single();
@@ -104,7 +106,7 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
 
     setQuizStarted(true);
     startTimeRef.current = Date.now();
-    
+
     if (quiz.time_limit) {
       setTimeLeft(quiz.time_limit * 60); // Convert minutes to seconds
     }
@@ -127,9 +129,15 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
   const handleSubmitQuiz = async (autoSubmit = false) => {
     if (!autoSubmit) {
       // Check if all questions are answered
-      const unansweredQuestions = questions.filter(q => !answers[q.id] || answers[q.id].trim() === '');
+      const unansweredQuestions = questions.filter(
+        q => !answers[q.id] || answers[q.id].trim() === ''
+      );
       if (unansweredQuestions.length > 0) {
-        if (!window.confirm(`You have ${unansweredQuestions.length} unanswered questions. Submit anyway?`)) {
+        if (
+          !window.confirm(
+            `You have ${unansweredQuestions.length} unanswered questions. Submit anyway?`
+          )
+        ) {
           return;
         }
       }
@@ -137,23 +145,23 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
 
     try {
       setSubmitting(true);
-      
+
       const timeTaken = Math.floor((Date.now() - startTimeRef.current) / 1000);
-      
+
       // Calculate score
       let correctAnswers = 0;
       let totalPoints = 0;
-      
+
       questions.forEach(question => {
         totalPoints += question.points;
         const studentAnswer = answers[question.id]?.trim().toLowerCase();
         const correctAnswer = question.correct_answer?.trim().toLowerCase();
-        
+
         if (studentAnswer === correctAnswer) {
           correctAnswers += question.points;
         }
       });
-      
+
       const score = totalPoints > 0 ? (correctAnswers / totalPoints) * 100 : 0;
       const passed = score >= quiz.passing_score;
       const attemptNumber = attempts.length + 1;
@@ -198,7 +206,7 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
     }
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = seconds => {
     if (!seconds) return '';
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -215,8 +223,8 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading quiz...</p>
         </div>
       </div>
@@ -225,8 +233,8 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
 
   if (!quiz) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>No quiz found for this chapter.</p>
           <button onClick={() => setPage('course-overview')}>Back to Course</button>
         </div>
@@ -237,54 +245,84 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
   // Quiz completed - show results
   if (quizCompleted && results) {
     return (
-      <div className="main-container">
-        <header className="main-header">
+      <div className='main-container'>
+        <header className='main-header'>
           <h2>Quiz Results: {quiz.title}</h2>
-          <button className="back-button" onClick={() => setPage('course-overview')}>
+          <button className='back-button' onClick={() => setPage('course-overview')}>
             Back to Course
           </button>
         </header>
 
-        <div className="content-body">
-          <div className="card">
+        <div className='content-body'>
+          <div className='card'>
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{
-                fontSize: '3rem',
-                fontWeight: 'bold',
-                color: results.passed ? '#10b981' : '#ef4444',
-                marginBottom: '0.5rem'
-              }}>
+              <div
+                style={{
+                  fontSize: '3rem',
+                  fontWeight: 'bold',
+                  color: results.passed ? '#10b981' : '#ef4444',
+                  marginBottom: '0.5rem'
+                }}
+              >
                 {Math.round(results.score)}%
               </div>
-              <div style={{
-                fontSize: '1.25rem',
-                fontWeight: 600,
-                color: results.passed ? '#10b981' : '#ef4444',
-                marginBottom: '1rem'
-              }}>
+              <div
+                style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 600,
+                  color: results.passed ? '#10b981' : '#ef4444',
+                  marginBottom: '1rem'
+                }}
+              >
                 {results.passed ? '✅ PASSED' : '❌ FAILED'}
               </div>
-              <p style={{ color: '#666' }}>
-                You need {quiz.passing_score}% to pass this quiz
-              </p>
+              <p style={{ color: '#666' }}>You need {quiz.passing_score}% to pass this quiz</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem',
+                marginBottom: '2rem'
+              }}
+            >
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f9fafb',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
                   {results.attempt_number}
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>Attempt Number</div>
               </div>
-              
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f9fafb',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
                   {formatTime(results.time_taken)}
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>Time Taken</div>
               </div>
-              
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f9fafb',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
                   {quiz.max_attempts - attempts.length - 1}
                 </div>
@@ -310,7 +348,15 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
             )}
 
             {results.passed && (
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#e8f5e9', borderRadius: '8px', marginTop: '1rem' }}>
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#e8f5e9',
+                  borderRadius: '8px',
+                  marginTop: '1rem'
+                }}
+              >
                 <p style={{ margin: 0, color: '#2e7d32', fontWeight: 600 }}>
                   🎉 Great job! You can now proceed to the next chapter.
                 </p>
@@ -325,37 +371,42 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
   // Quiz not started - show intro
   if (!quizStarted) {
     return (
-      <div className="main-container">
-        <header className="main-header">
+      <div className='main-container'>
+        <header className='main-header'>
           <h2>{quiz.title}</h2>
-          <button className="back-button" onClick={() => setPage('course-overview')}>
+          <button className='back-button' onClick={() => setPage('course-overview')}>
             Back to Course
           </button>
         </header>
 
-        <div className="content-body">
-          <div className="card">
+        <div className='content-body'>
+          <div className='card'>
             <h3>Quiz Instructions</h3>
-            {quiz.description && (
-              <p style={{ marginBottom: '1rem' }}>{quiz.description}</p>
-            )}
+            {quiz.description && <p style={{ marginBottom: '1rem' }}>{quiz.description}</p>}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '1rem',
+                marginBottom: '2rem'
+              }}
+            >
               <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
                 <div style={{ fontWeight: 'bold', color: '#3b82f6' }}>Questions</div>
                 <div>{questions.length}</div>
               </div>
-              
+
               <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
                 <div style={{ fontWeight: 'bold', color: '#10b981' }}>Passing Score</div>
                 <div>{quiz.passing_score}%</div>
               </div>
-              
+
               <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
                 <div style={{ fontWeight: 'bold', color: '#f59e0b' }}>Time Limit</div>
                 <div>{quiz.time_limit ? `${quiz.time_limit} minutes` : 'No limit'}</div>
               </div>
-              
+
               <div style={{ padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
                 <div style={{ fontWeight: 'bold', color: '#8b5cf6' }}>Attempts Left</div>
                 <div>{quiz.max_attempts - attempts.length}</div>
@@ -379,7 +430,9 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
                       }}
                     >
                       <span>Attempt {attempt.attempt_number}</span>
-                      <span>{Math.round(attempt.score)}% - {attempt.passed ? 'Passed' : 'Failed'}</span>
+                      <span>
+                        {Math.round(attempt.score)}% - {attempt.passed ? 'Passed' : 'Failed'}
+                      </span>
                       <span>{formatTime(attempt.time_taken)}</span>
                     </div>
                   ))}
@@ -411,16 +464,18 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
   const currentQuestion = questions[currentQuestionIndex];
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>{quiz.title}</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           {timeLeft !== null && (
-            <div style={{ 
-              color: getTimeColor(), 
-              fontWeight: 'bold',
-              fontSize: '1.125rem'
-            }}>
+            <div
+              style={{
+                color: getTimeColor(),
+                fontWeight: 'bold',
+                fontSize: '1.125rem'
+              }}
+            >
               ⏰ {formatTime(timeLeft)}
             </div>
           )}
@@ -430,31 +485,36 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
         </div>
       </header>
 
-      <div className="content-body">
-        <div className="card">
+      <div className='content-body'>
+        <div className='card'>
           {/* Progress Bar */}
           <div style={{ marginBottom: '2rem' }}>
-            <div style={{
-              width: '100%',
-              height: '8px',
-              background: '#e5e7eb',
-              borderRadius: '4px',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
-                height: '100%',
-                background: '#3b82f6',
+            <div
+              style={{
+                width: '100%',
+                height: '8px',
+                background: '#e5e7eb',
                 borderRadius: '4px',
-                transition: 'width 0.3s'
-              }} />
+                overflow: 'hidden'
+              }}
+            >
+              <div
+                style={{
+                  width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+                  height: '100%',
+                  background: '#3b82f6',
+                  borderRadius: '4px',
+                  transition: 'width 0.3s'
+                }}
+              />
             </div>
           </div>
 
           {/* Question */}
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{ marginBottom: '1rem' }}>
-              Question {currentQuestionIndex + 1} ({currentQuestion.points} point{currentQuestion.points !== 1 ? 's' : ''})
+              Question {currentQuestionIndex + 1} ({currentQuestion.points} point
+              {currentQuestion.points !== 1 ? 's' : ''})
             </h3>
             <p style={{ fontSize: '1.125rem', lineHeight: '1.6' }}>
               {currentQuestion.question_text}
@@ -481,11 +541,11 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
                     }}
                   >
                     <input
-                      type="radio"
+                      type='radio'
                       name={`question-${currentQuestion.id}`}
                       value={option}
                       checked={answers[currentQuestion.id] === option}
-                      onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                      onChange={e => handleAnswerChange(currentQuestion.id, e.target.value)}
                       style={{ marginRight: '0.75rem' }}
                     />
                     <span>{option}</span>
@@ -496,7 +556,7 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
 
             {currentQuestion.question_type === 'true_false' && (
               <div style={{ display: 'grid', gap: '0.75rem' }}>
-                {['True', 'False'].map((option) => (
+                {['True', 'False'].map(option => (
                   <label
                     key={option}
                     style={{
@@ -512,11 +572,11 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
                     }}
                   >
                     <input
-                      type="radio"
+                      type='radio'
                       name={`question-${currentQuestion.id}`}
                       value={option}
                       checked={answers[currentQuestion.id] === option}
-                      onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                      onChange={e => handleAnswerChange(currentQuestion.id, e.target.value)}
                       style={{ marginRight: '0.75rem' }}
                     />
                     <span>{option}</span>
@@ -528,10 +588,15 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
             {currentQuestion.question_type === 'short_answer' && (
               <textarea
                 value={answers[currentQuestion.id] || ''}
-                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                placeholder="Enter your answer here..."
+                onChange={e => handleAnswerChange(currentQuestion.id, e.target.value)}
+                placeholder='Enter your answer here...'
                 rows={4}
-                style={{ width: '100%', padding: '1rem', border: '2px solid #e5e7eb', borderRadius: '8px' }}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px'
+                }}
               />
             )}
           </div>
@@ -559,9 +624,16 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
                     width: '40px',
                     height: '40px',
                     borderRadius: '50%',
-                    background: index === currentQuestionIndex ? '#3b82f6' : 
-                               answers[questions[index].id] ? '#10b981' : '#e5e7eb',
-                    color: index === currentQuestionIndex || answers[questions[index].id] ? 'white' : '#666',
+                    background:
+                      index === currentQuestionIndex
+                        ? '#3b82f6'
+                        : answers[questions[index].id]
+                        ? '#10b981'
+                        : '#e5e7eb',
+                    color:
+                      index === currentQuestionIndex || answers[questions[index].id]
+                        ? 'white'
+                        : '#666',
                     border: 'none',
                     fontSize: '0.875rem',
                     fontWeight: 600
@@ -587,7 +659,9 @@ function ChapterQuizPage({ currentUser, selectedChapter, setPage }) {
               </button>
             ) : (
               <button
-                onClick={() => setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1))}
+                onClick={() =>
+                  setCurrentQuestionIndex(prev => Math.min(questions.length - 1, prev + 1))
+                }
                 style={{
                   width: 'auto',
                   background: '#3b82f6',

@@ -1,0 +1,160 @@
+// Protected Route wrapper
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const { session, profile } = useAuth();
+  
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(profile?.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+// Public Route wrapper (redirects to dashboard if already authenticated)
+const PublicRoute = ({ children }) => {
+  const { session, profile } = useAuth();
+  
+  if (session) {
+    const dashboardPath = getDashboardPath(profile?.role);
+    return <Navigate to={dashboardPath} replace />;
+  }
+
+  return children;
+};
+
+// Helper function to get dashboard path based on user role
+const getDashboardPath = (role) => {
+  switch (role) {
+    case 'super-admin':
+      return '/admin';
+    case 'teacher':
+      return '/teacher';
+    default:
+      return '/dashboard';
+  }
+};
+
+const Router = () => {
+  return (
+    <Routes>
+      {/* Public Routes - No Layout */}
+      <Route path="/" element={
+        <PublicRoute>
+          <LandingPage />
+        </PublicRoute>
+      } />
+      <Route path="/auth" element={
+        <PublicRoute>
+          <AuthChoicePage />
+        </PublicRoute>
+      } />
+      <Route path="/login" element={
+        <PublicRoute>
+          <LoginPage />
+        </PublicRoute>
+      } />
+      <Route path="/register" element={
+        <PublicRoute>
+          <RegistrationPage />
+        </PublicRoute>
+      } />
+
+      {/* Routes with AppLayout */}
+      <Route element={<AppLayout />}>
+        {/* Public Teacher Routes */}
+        <Route path="/teachers" element={<BrowseTeachersPage />} />
+        <Route path="/teachers/:id" element={<TeacherPublicProfilePage />} />
+
+        {/* Protected Student Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/subjects" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <SubjectSelectionPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/quiz" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <QuizPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/leaderboard" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <LeaderboardPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/book/:teacherId" element={
+          <ProtectedRoute allowedRoles={['student']}>
+            <BookingPage />
+          </ProtectedRoute>
+        } />
+
+        {/* Protected Teacher Routes */}
+        <Route path="/teacher" element={
+          <ProtectedRoute allowedRoles={['teacher']}>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Protected Admin Routes */}
+        <Route path="/admin" element={
+          <ProtectedRoute allowedRoles={['super-admin']}>
+            <SuperAdminDashboard />
+          </ProtectedRoute>
+        } />
+
+        {/* Subscription and Payment Routes */}
+        <Route path="/subscriptions" element={
+          <ProtectedRoute>
+            <SubscriptionPlansPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/payment/process" element={
+          <ProtectedRoute>
+            <PaymentProcessingPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/payment/callback" element={
+          <ProtectedRoute>
+            <PaymentCallbackPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/payment/history" element={
+          <ProtectedRoute>
+            <PaymentHistoryPage />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/subscription/manage" element={
+          <ProtectedRoute>
+            <SubscriptionManagementPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/payment/status" element={
+          <ProtectedRoute>
+            <PaymentStatusPage />
+          </ProtectedRoute>
+        } />
+      </Route>
+
+      {/* Catch-all route - redirect to home or dashboard */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+};
+
+export default Router;

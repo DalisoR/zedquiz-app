@@ -1,0 +1,171 @@
+.dashboard {
+  padding: 2rem;
+}
+
+.dashboardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.headerButton {
+  margin-right: 0.5rem;
+}
+
+.contentBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.profileInfo {
+  background-color: white;
+}
+
+.subscriptionStatus {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.tierBadge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.free {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.premium {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.premiumIcon {
+  color: #f59e0b;
+}
+
+.quickStats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.statIcon {
+  font-size: 1.5rem;
+  color: #6b7280;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.statLabel {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.limitReached {
+  text-align: center;
+  padding: 1rem;
+}
+
+.leaderboardButton {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.cardIcon {
+  margin-right: 0.5rem;
+}
+
+.premiumList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem 0;
+}
+
+.premiumList li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #4b5563;
+}
+
+.paymentButtons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.managementButton {
+  flex: 1;
+}
+
+.quizHistoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboardHeader {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .headerButton {
+    flex: 1;
+  }
+
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .quickStats {
+    grid-template-columns: 1fr;
+  }
+
+  .paymentButtons {
+    flex-direction: column;
+  }
+}

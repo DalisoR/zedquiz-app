@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 import { useToastNotification } from '../hooks/useToastNotification';
 
-function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedChapter, setSelectedLesson }) {
+function CourseOverviewPage({
+  currentUser,
+  selectedCourse,
+  setPage,
+  setSelectedChapter,
+  setSelectedLesson
+}) {
   const [loading, setLoading] = useState(true);
   const [course, setCourse] = useState(selectedCourse || null);
   const [chapters, setChapters] = useState([]);
@@ -26,10 +32,12 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
       // Fetch course with teacher info
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
-        .select(`
+        .select(
+          `
           *,
           teacher:profiles!courses_teacher_id_fkey(full_name, bio)
-        `)
+        `
+        )
         .eq('id', selectedCourse.id)
         .single();
 
@@ -39,7 +47,8 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
       // Fetch chapters with lessons
       const { data: chaptersData, error: chaptersError } = await supabase
         .from('chapters')
-        .select(`
+        .select(
+          `
           *,
           lessons:lessons(
             id, title, description, order_index, lesson_type, 
@@ -47,7 +56,8 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
             videos:video_content(count),
             attachments:lesson_attachments(count)
           )
-        `)
+        `
+        )
         .eq('course_id', selectedCourse.id)
         .eq('is_published', true)
         .order('order_index');
@@ -149,32 +159,32 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
     setPage('lesson-viewer');
   };
 
-  const canAccessChapter = (chapterIndex) => {
+  const canAccessChapter = chapterIndex => {
     if (chapterIndex === 0) return true; // First chapter always accessible
-    
+
     // Check if previous chapter is completed (simplified logic)
     const previousChapter = chapters[chapterIndex - 1];
     if (!previousChapter) return false;
-    
+
     // For now, assume chapter is accessible if any lesson in previous chapter is completed
-    const hasCompletedLessons = previousChapter.lessons?.some(lesson => 
-      progress[lesson.id] === 'completed'
+    const hasCompletedLessons = previousChapter.lessons?.some(
+      lesson => progress[lesson.id] === 'completed'
     );
-    
+
     return hasCompletedLessons;
   };
 
-  const getChapterProgress = (chapter) => {
+  const getChapterProgress = chapter => {
     if (!chapter.lessons || chapter.lessons.length === 0) return 0;
-    
-    const completedLessons = chapter.lessons.filter(lesson => 
-      progress[lesson.id] === 'completed'
+
+    const completedLessons = chapter.lessons.filter(
+      lesson => progress[lesson.id] === 'completed'
     ).length;
-    
+
     return Math.round((completedLessons / chapter.lessons.length) * 100);
   };
 
-  const formatDuration = (minutes) => {
+  const formatDuration = minutes => {
     if (!minutes) return '';
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -186,8 +196,8 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading course details...</p>
         </div>
       </div>
@@ -196,8 +206,8 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
 
   if (!course) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Course not found.</p>
           <button onClick={() => setPage('browse-courses')}>Back to Courses</button>
         </div>
@@ -206,18 +216,25 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>{course.title}</h2>
-        <button className="back-button" onClick={() => setPage('browse-courses')}>
+        <button className='back-button' onClick={() => setPage('browse-courses')}>
           Back to Courses
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Course Header */}
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+        <div className='card'>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              marginBottom: '1rem'
+            }}
+          >
             <div style={{ flex: 1 }}>
               <h3>{course.title}</h3>
               <p style={{ color: '#666', margin: '0.5rem 0' }}>
@@ -226,15 +243,25 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
               {course.description && (
                 <p style={{ margin: '1rem 0', color: '#555' }}>{course.description}</p>
               )}
-              
-              <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1.5rem',
+                  marginTop: '1rem',
+                  fontSize: '0.875rem',
+                  color: '#666'
+                }}
+              >
                 <span>📚 {chapters.length} chapters</span>
                 {course.estimated_hours && <span>⏱️ {course.estimated_hours} hours</span>}
                 <span>👨‍🏫 {course.teacher?.full_name || 'Unknown Teacher'}</span>
-                <span style={{ 
-                  color: course.price === 0 ? '#10b981' : '#f59e0b',
-                  fontWeight: 600 
-                }}>
+                <span
+                  style={{
+                    color: course.price === 0 ? '#10b981' : '#f59e0b',
+                    fontWeight: 600
+                  }}
+                >
                   {course.price === 0 ? 'Free' : `K${course.price}`}
                 </span>
               </div>
@@ -243,15 +270,17 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
             <div style={{ marginLeft: '2rem' }}>
               {enrollment ? (
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{
-                    padding: '0.5rem 1rem',
-                    background: '#e8f5e9',
-                    color: '#2e7d32',
-                    borderRadius: '20px',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    marginBottom: '1rem'
-                  }}>
+                  <div
+                    style={{
+                      padding: '0.5rem 1rem',
+                      background: '#e8f5e9',
+                      color: '#2e7d32',
+                      borderRadius: '20px',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      marginBottom: '1rem'
+                    }}
+                  >
                     ✓ Enrolled
                   </div>
                   <div style={{ fontSize: '0.875rem', color: '#666' }}>
@@ -276,9 +305,9 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
         </div>
 
         {/* Course Content */}
-        <div className="card">
+        <div className='card'>
           <h3>Course Content</h3>
-          
+
           {chapters.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
               <p>This course doesn't have any published chapters yet.</p>
@@ -288,7 +317,7 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
               {chapters.map((chapter, chapterIndex) => {
                 const isAccessible = enrollment && canAccessChapter(chapterIndex);
                 const chapterProgress = getChapterProgress(chapter);
-                
+
                 return (
                   <div
                     key={chapter.id}
@@ -300,19 +329,27 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
                     }}
                   >
                     <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}
+                      >
                         <div>
                           <h4 style={{ margin: '0 0 0.5rem 0' }}>
                             Chapter {chapter.order_index}: {chapter.title}
                             {!isAccessible && (
-                              <span style={{ 
-                                marginLeft: '0.5rem', 
-                                fontSize: '0.75rem', 
-                                color: '#ef4444',
-                                background: '#fee2e2',
-                                padding: '0.25rem 0.5rem',
-                                borderRadius: '12px'
-                              }}>
+                              <span
+                                style={{
+                                  marginLeft: '0.5rem',
+                                  fontSize: '0.75rem',
+                                  color: '#ef4444',
+                                  background: '#fee2e2',
+                                  padding: '0.25rem 0.5rem',
+                                  borderRadius: '12px'
+                                }}
+                              >
                                 🔒 Locked
                               </span>
                             )}
@@ -328,20 +365,24 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
                             <div style={{ fontSize: '0.875rem', color: '#666' }}>
                               Progress: {chapterProgress}%
                             </div>
-                            <div style={{
-                              width: '100px',
-                              height: '4px',
-                              background: '#e5e7eb',
-                              borderRadius: '2px',
-                              marginTop: '0.25rem'
-                            }}>
-                              <div style={{
-                                width: `${chapterProgress}%`,
-                                height: '100%',
-                                background: '#10b981',
+                            <div
+                              style={{
+                                width: '100px',
+                                height: '4px',
+                                background: '#e5e7eb',
                                 borderRadius: '2px',
-                                transition: 'width 0.3s'
-                              }} />
+                                marginTop: '0.25rem'
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: `${chapterProgress}%`,
+                                  height: '100%',
+                                  background: '#10b981',
+                                  borderRadius: '2px',
+                                  transition: 'width 0.3s'
+                                }}
+                              />
                             </div>
                           </div>
                         )}
@@ -351,10 +392,10 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
                     {/* Lessons */}
                     {chapter.lessons && chapter.lessons.length > 0 && (
                       <div style={{ padding: '0.5rem' }}>
-                        {chapter.lessons.map((lesson) => {
+                        {chapter.lessons.map(lesson => {
                           const lessonProgress = progress[lesson.id];
                           const isCompleted = lessonProgress === 'completed';
-                          
+
                           return (
                             <div
                               key={lesson.id}
@@ -370,29 +411,43 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
                               }}
                             >
                               <div style={{ flex: 1 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                  <span style={{ 
-                                    color: isCompleted ? '#10b981' : '#6b7280',
-                                    fontSize: '1rem'
-                                  }}>
+                                <div
+                                  style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                >
+                                  <span
+                                    style={{
+                                      color: isCompleted ? '#10b981' : '#6b7280',
+                                      fontSize: '1rem'
+                                    }}
+                                  >
                                     {isCompleted ? '✓' : '○'}
                                   </span>
                                   <h5 style={{ margin: 0, fontSize: '0.9rem' }}>
                                     Lesson {lesson.order_index}: {lesson.title}
                                   </h5>
                                   {lesson.is_mandatory && (
-                                    <span style={{
-                                      fontSize: '0.75rem',
-                                      color: '#ef4444',
-                                      background: '#fee2e2',
-                                      padding: '0.125rem 0.375rem',
-                                      borderRadius: '8px'
-                                    }}>
+                                    <span
+                                      style={{
+                                        fontSize: '0.75rem',
+                                        color: '#ef4444',
+                                        background: '#fee2e2',
+                                        padding: '0.125rem 0.375rem',
+                                        borderRadius: '8px'
+                                      }}
+                                    >
                                       Required
                                     </span>
                                   )}
                                 </div>
-                                <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: '#666', marginTop: '0.25rem' }}>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '1rem',
+                                    fontSize: '0.75rem',
+                                    color: '#666',
+                                    marginTop: '0.25rem'
+                                  }}
+                                >
                                   <span>{lesson.lesson_type}</span>
                                   <span>🎥 {lesson.videos?.[0]?.count || 0} videos</span>
                                   <span>📎 {lesson.attachments?.[0]?.count || 0} files</span>
@@ -401,7 +456,7 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
                                   )}
                                 </div>
                               </div>
-                              
+
                               {enrollment && isAccessible && (
                                 <button
                                   onClick={() => handleStartLesson(chapter, lesson)}
@@ -429,20 +484,22 @@ function CourseOverviewPage({ currentUser, selectedCourse, setPage, setSelectedC
 
         {/* Teacher Info */}
         {course.teacher && (
-          <div className="card">
+          <div className='card'>
             <h3>About the Instructor</h3>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
-              <div style={{
-                width: '60px',
-                height: '60px',
-                borderRadius: '50%',
-                background: '#e5e7eb',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.5rem',
-                color: '#6b7280'
-              }}>
+              <div
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: '#e5e7eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.5rem',
+                  color: '#6b7280'
+                }}
+              >
                 👨‍🏫
               </div>
               <div>

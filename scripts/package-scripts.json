@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "docs:generate": "node scripts/generate-docs.js",
+    "docs:jsdoc": "jsdoc -c jsdoc.json",
+    "docs:serve": "npx serve docs",
+    "docs": "npm run docs:generate && npm run docs:jsdoc"
+  }
+}

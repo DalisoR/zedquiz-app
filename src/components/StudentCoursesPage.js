@@ -16,17 +16,19 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
   const fetchEnrolledCourses = async () => {
     try {
       setLoading(true);
-      
+
       let query = supabase
         .from('student_course_enrollments')
-        .select(`
+        .select(
+          `
           *,
           course:courses(
             *,
             teacher:profiles!courses_teacher_id_fkey(full_name),
             chapters:chapters(count)
           )
-        `)
+        `
+        )
         .eq('student_id', currentUser.id);
 
       // Apply filter
@@ -42,7 +44,7 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
 
       // Fetch detailed progress for each course
       const coursesWithProgress = await Promise.all(
-        (data || []).map(async (enrollment) => {
+        (data || []).map(async enrollment => {
           const progress = await fetchCourseProgress(enrollment.course.id);
           return {
             ...enrollment,
@@ -60,7 +62,7 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
     }
   };
 
-  const fetchCourseProgress = async (courseId) => {
+  const fetchCourseProgress = async courseId => {
     try {
       // Get total lessons and completed lessons
       const { data: progressData, error } = await supabase
@@ -77,19 +79,19 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
       // Get video progress
       const { data: videoData, error: videoError } = await supabase
         .from('video_progress')
-        .select(`
+        .select(
+          `
           mandatory_completed,
           video:video_content(
             lesson:lessons(course_id)
           )
-        `)
+        `
+        )
         .eq('student_id', currentUser.id);
 
       if (videoError) throw videoError;
 
-      const courseVideos = videoData.filter(v => 
-        v.video?.lesson?.course_id === courseId
-      );
+      const courseVideos = videoData.filter(v => v.video?.lesson?.course_id === courseId);
       const completedVideos = courseVideos.filter(v => v.mandatory_completed).length;
 
       return {
@@ -109,24 +111,24 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
     }
   };
 
-  const handleContinueCourse = (enrollment) => {
+  const handleContinueCourse = enrollment => {
     setSelectedCourse(enrollment.course);
     setPage('course-overview');
   };
 
-  const getProgressColor = (percentage) => {
+  const getProgressColor = percentage => {
     if (percentage >= 100) return '#10b981';
     if (percentage >= 70) return '#3b82f6';
     if (percentage >= 30) return '#f59e0b';
     return '#ef4444';
   };
 
-  const formatLastAccessed = (dateString) => {
+  const formatLastAccessed = dateString => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = Math.abs(now - date);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 1) return 'Today';
     if (diffDays === 2) return 'Yesterday';
     if (diffDays <= 7) return `${diffDays - 1} days ago`;
@@ -134,17 +136,17 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
   };
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>My Courses</h2>
-        <button className="back-button" onClick={() => setPage('dashboard')}>
+        <button className='back-button' onClick={() => setPage('dashboard')}>
           Back to Dashboard
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Filter Tabs */}
-        <div className="card">
+        <div className='card'>
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
             {[
               { key: 'all', label: 'All Courses' },
@@ -186,7 +188,7 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
         </div>
 
         {/* Courses List */}
-        <div className="card">
+        <div className='card'>
           {loading ? (
             <div style={{ textAlign: 'center', padding: '2rem' }}>
               <p>Loading your courses...</p>
@@ -195,10 +197,9 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
             <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
               <h4>No courses found</h4>
               <p>
-                {filter === 'all' 
+                {filter === 'all'
                   ? "You haven't enrolled in any courses yet."
-                  : `No ${filter.replace('-', ' ')} courses found.`
-                }
+                  : `No ${filter.replace('-', ' ')} courses found.`}
               </p>
               <button
                 onClick={() => setPage('browse-courses')}
@@ -209,11 +210,11 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
             </div>
           ) : (
             <div style={{ display: 'grid', gap: '1.5rem' }}>
-              {enrolledCourses.map((enrollment) => {
+              {enrolledCourses.map(enrollment => {
                 const course = enrollment.course;
                 const progress = enrollment.detailedProgress;
                 const completionPercentage = enrollment.completion_percentage || 0;
-                
+
                 return (
                   <div
                     key={enrollment.id}
@@ -225,18 +226,33 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
                       boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start'
+                      }}
+                    >
                       <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            marginBottom: '0.5rem'
+                          }}
+                        >
                           <h3 style={{ margin: 0 }}>{course.title}</h3>
-                          <span style={{
-                            padding: '0.25rem 0.75rem',
-                            borderRadius: '20px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            background: course.price === 0 ? '#e8f5e9' : '#fff3e0',
-                            color: course.price === 0 ? '#2e7d32' : '#ef6c00'
-                          }}>
+                          <span
+                            style={{
+                              padding: '0.25rem 0.75rem',
+                              borderRadius: '20px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              background: course.price === 0 ? '#e8f5e9' : '#fff3e0',
+                              color: course.price === 0 ? '#2e7d32' : '#ef6c00'
+                            }}
+                          >
                             {course.price === 0 ? 'Free' : `K${course.price}`}
                           </span>
                         </div>
@@ -247,16 +263,22 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
 
                         {course.description && (
                           <p style={{ margin: '0.5rem 0', color: '#555' }}>
-                            {course.description.length > 150 
+                            {course.description.length > 150
                               ? course.description.substring(0, 150) + '...'
-                              : course.description
-                            }
+                              : course.description}
                           </p>
                         )}
 
                         {/* Progress Bar */}
                         <div style={{ margin: '1rem 0' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: '0.5rem'
+                            }}
+                          >
                             <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>
                               Progress: {Math.round(completionPercentage)}%
                             </span>
@@ -264,26 +286,39 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
                               {progress.completedLessons}/{progress.totalLessons} lessons completed
                             </span>
                           </div>
-                          <div style={{
-                            width: '100%',
-                            height: '8px',
-                            background: '#e5e7eb',
-                            borderRadius: '4px',
-                            overflow: 'hidden'
-                          }}>
-                            <div style={{
-                              width: `${completionPercentage}%`,
-                              height: '100%',
-                              background: getProgressColor(completionPercentage),
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '8px',
+                              background: '#e5e7eb',
                               borderRadius: '4px',
-                              transition: 'width 0.3s'
-                            }} />
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: `${completionPercentage}%`,
+                                height: '100%',
+                                background: getProgressColor(completionPercentage),
+                                borderRadius: '4px',
+                                transition: 'width 0.3s'
+                              }}
+                            />
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: '#666' }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '1.5rem',
+                            fontSize: '0.875rem',
+                            color: '#666'
+                          }}
+                        >
                           <span>📚 {course.chapters?.[0]?.count || 0} chapters</span>
-                          <span>🎥 {progress.completedVideos}/{progress.totalVideos} videos watched</span>
+                          <span>
+                            🎥 {progress.completedVideos}/{progress.totalVideos} videos watched
+                          </span>
                           <span>👨‍🏫 {course.teacher?.full_name || 'Unknown Teacher'}</span>
                         </div>
 
@@ -292,7 +327,14 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
                         </div>
                       </div>
 
-                      <div style={{ marginLeft: '2rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <div
+                        style={{
+                          marginLeft: '2rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.5rem'
+                        }}
+                      >
                         <button
                           onClick={() => handleContinueCourse(enrollment)}
                           style={{
@@ -305,17 +347,19 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
                         >
                           {completionPercentage >= 100 ? 'Review Course' : 'Continue Learning'}
                         </button>
-                        
+
                         {completionPercentage >= 100 && (
-                          <div style={{
-                            textAlign: 'center',
-                            padding: '0.5rem',
-                            background: '#e8f5e9',
-                            color: '#2e7d32',
-                            borderRadius: '6px',
-                            fontSize: '0.75rem',
-                            fontWeight: 600
-                          }}>
+                          <div
+                            style={{
+                              textAlign: 'center',
+                              padding: '0.5rem',
+                              background: '#e8f5e9',
+                              color: '#2e7d32',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: 600
+                            }}
+                          >
                             ✓ Completed
                           </div>
                         )}
@@ -330,33 +374,75 @@ function StudentCoursesPage({ currentUser, setPage, setSelectedCourse }) {
 
         {/* Quick Stats */}
         {enrolledCourses.length > 0 && (
-          <div className="card">
+          <div className='card'>
             <h3>Learning Statistics</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                gap: '1rem'
+              }}
+            >
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f8f9fa',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
                   {enrolledCourses.length}
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>Total Courses</div>
               </div>
-              
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f8f9fa',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>
                   {enrolledCourses.filter(e => e.completion_percentage >= 100).length}
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>Completed</div>
               </div>
-              
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f8f9fa',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
-                  {enrolledCourses.filter(e => e.completion_percentage > 0 && e.completion_percentage < 100).length}
+                  {
+                    enrolledCourses.filter(
+                      e => e.completion_percentage > 0 && e.completion_percentage < 100
+                    ).length
+                  }
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>In Progress</div>
               </div>
-              
-              <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '1rem',
+                  background: '#f8f9fa',
+                  borderRadius: '8px'
+                }}
+              >
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
-                  {Math.round(enrolledCourses.reduce((sum, e) => sum + (e.completion_percentage || 0), 0) / enrolledCourses.length) || 0}%
+                  {Math.round(
+                    enrolledCourses.reduce((sum, e) => sum + (e.completion_percentage || 0), 0) /
+                      enrolledCourses.length
+                  ) || 0}
+                  %
                 </div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>Average Progress</div>
               </div>

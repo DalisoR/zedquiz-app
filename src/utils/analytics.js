@@ -12,7 +12,9 @@ export const initAnalytics = () => {
 
     // Initialize the data layer
     window.dataLayer = window.dataLayer || [];
-    window.gtag = function() { window.dataLayer.push(arguments); };
+    window.gtag = function () {
+      window.dataLayer.push(arguments);
+    };
     window.gtag('js', new Date());
     window.gtag('config', MEASUREMENT_ID, {
       send_page_view: true,
@@ -25,7 +27,7 @@ export const initAnalytics = () => {
 };
 
 // Track page views
-export const trackPageView = (path) => {
+export const trackPageView = path => {
   if (typeof window !== 'undefined' && window.gtag) {
     window.gtag('config', MEASUREMENT_ID, {
       page_path: path,
@@ -46,22 +48,22 @@ export const trackEvent = (action, category, label, value) => {
 };
 
 // Track form submissions
-export const trackFormSubmission = (formName) => {
+export const trackFormSubmission = formName => {
   trackEvent('form_submit', 'form', formName);
 };
 
 // Track button clicks
-export const trackButtonClick = (buttonName) => {
+export const trackButtonClick = buttonName => {
   trackEvent('button_click', 'ui_interaction', buttonName);
 };
 
 // Track user sign up
-export const trackSignUp = (method) => {
+export const trackSignUp = method => {
   trackEvent('sign_up', 'authentication', method);
 };
 
 // Track user login
-export const trackLogin = (method) => {
+export const trackLogin = method => {
   trackEvent('login', 'authentication', method);
 };
 

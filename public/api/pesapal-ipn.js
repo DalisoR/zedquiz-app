@@ -7,10 +7,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { 
+    const {
       pesapal_merchant_reference,
       pesapal_transaction_tracking_id,
-      pesapal_notification_type 
+      pesapal_notification_type
     } = req.query;
 
     console.log('PesaPal IPN received:', {
@@ -29,14 +29,13 @@ export default async function handler(req, res) {
     // For now, we'll just log and return success
     // The actual payment verification happens in the PaymentCallbackPage component
 
-    res.status(200).json({ 
+    res.status(200).json({
       status: 'success',
       message: 'IPN received and processed'
     });
-
   } catch (error) {
     console.error('PesaPal IPN Error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       status: 'error',
       message: 'Failed to process IPN'
     });

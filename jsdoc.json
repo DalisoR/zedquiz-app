@@ -1,0 +1,49 @@
+{
+  "source": {
+    "include": ["src"],
+    "includePattern": "\\.(jsx|js)$",
+    "excludePattern": "(node_modules/|docs|build)"
+  },
+  "plugins": ["better-docs/component", "better-docs/typescript", "better-docs/category"],
+  "tags": {
+    "allowUnknownTags": ["component", "category"]
+  },
+  "templates": {
+    "better-docs": {
+      "name": "ZedQuiz Components Documentation",
+      "navigation": [
+        {
+          "label": "Core",
+          "path": "components/core"
+        },
+        {
+          "label": "Layout",
+          "path": "components/layout"
+        },
+        {
+          "label": "Auth",
+          "path": "components/auth"
+        },
+        {
+          "label": "Dashboard",
+          "path": "components/dashboard"
+        },
+        {
+          "label": "Pages",
+          "path": "components/pages"
+        },
+        {
+          "label": "Features",
+          "path": "components/features"
+        }
+      ]
+    }
+  },
+  "opts": {
+    "destination": "docs",
+    "readme": "README.md",
+    "template": "node_modules/better-docs",
+    "recurse": true,
+    "verbose": true
+  }
+}

@@ -26,7 +26,7 @@ function StudentDiscountPage({ currentUser, setPage }) {
   const fetchStudentDiscount = async () => {
     try {
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from('student_discounts')
         .select('*')
@@ -34,7 +34,7 @@ function StudentDiscountPage({ currentUser, setPage }) {
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      
+
       setStudentDiscount(data);
     } catch (err) {
       console.error('Error fetching student discount:', err);
@@ -44,10 +44,10 @@ function StudentDiscountPage({ currentUser, setPage }) {
     }
   };
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async file => {
     try {
       setUploading(true);
-      
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`;
       const filePath = `student-verifications/${fileName}`;
@@ -58,9 +58,9 @@ function StudentDiscountPage({ currentUser, setPage }) {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('documents')
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl }
+      } = supabase.storage.from('documents').getPublicUrl(filePath);
 
       return publicUrl;
     } catch (err) {
@@ -72,12 +72,12 @@ function StudentDiscountPage({ currentUser, setPage }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    
+
     try {
       let documentUrl = null;
-      
+
       if (formData.verification_document) {
         documentUrl = await handleFileUpload(formData.verification_document);
         if (!documentUrl) return; // Upload failed
@@ -92,13 +92,13 @@ function StudentDiscountPage({ currentUser, setPage }) {
         verification_status: 'pending'
       };
 
-      const { error } = await supabase
-        .from('student_discounts')
-        .insert([discountData]);
+      const { error } = await supabase.from('student_discounts').insert([discountData]);
 
       if (error) throw error;
 
-      showSuccess('Student discount application submitted! We will review it within 2-3 business days.');
+      showSuccess(
+        'Student discount application submitted! We will review it within 2-3 business days.'
+      );
       setShowApplicationForm(false);
       setFormData({
         student_email: '',
@@ -113,37 +113,47 @@ function StudentDiscountPage({ currentUser, setPage }) {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'approved': return '#10b981';
-      case 'rejected': return '#ef4444';
-      case 'expired': return '#6b7280';
-      default: return '#f59e0b'; // pending
+      case 'approved':
+        return '#10b981';
+      case 'rejected':
+        return '#ef4444';
+      case 'expired':
+        return '#6b7280';
+      default:
+        return '#f59e0b'; // pending
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = status => {
     switch (status) {
-      case 'approved': return 'Approved';
-      case 'rejected': return 'Rejected';
-      case 'expired': return 'Expired';
-      default: return 'Under Review';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'expired':
+        return 'Expired';
+      default:
+        return 'Under Review';
     }
   };
 
-  const isEduEmail = (email) => {
-    return email.endsWith('.edu') || 
-           email.endsWith('.ac.zm') || 
-           email.endsWith('.edu.zm') ||
-           email.includes('unza.zm') ||
-           email.includes('cbu.ac.zm') ||
-           email.includes('mu.ac.zm');
+  const isEduEmail = email => {
+    return (
+      email.endsWith('.edu') ||
+      email.endsWith('.ac.zm') ||
+      email.endsWith('.edu.zm') ||
+      email.includes('unza.zm') ||
+      email.includes('cbu.ac.zm') ||
+      email.includes('mu.ac.zm')
+    );
   };
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading student discount information...</p>
         </div>
       </div>
@@ -151,40 +161,66 @@ function StudentDiscountPage({ currentUser, setPage }) {
   }
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Student Discount</h2>
-        <button className="back-button" onClick={() => setPage('subscriptions')}>
+        <button className='back-button' onClick={() => setPage('subscriptions')}>
           Back to Plans
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Student Discount Info */}
-        <div className="card">
+        <div className='card'>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎓</div>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#2c3e50' }}>
-              Student Discount Program
-            </h3>
+            <h3 style={{ margin: '0 0 1rem 0', color: '#2c3e50' }}>Student Discount Program</h3>
             <p style={{ fontSize: '1.125rem', color: '#666', maxWidth: '600px', margin: '0 auto' }}>
-              Get 50% off Premium and Pro plans with valid student verification. 
-              Perfect for students who want to excel in their studies!
+              Get 50% off Premium and Pro plans with valid student verification. Perfect for
+              students who want to excel in their studies!
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-            <div style={{ textAlign: 'center', padding: '1.5rem', background: '#f0f9ff', borderRadius: '8px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '1rem',
+              marginBottom: '2rem'
+            }}
+          >
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1.5rem',
+                background: '#f0f9ff',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💰</div>
               <h4 style={{ margin: '0 0 0.5rem 0' }}>50% Discount</h4>
               <p style={{ margin: 0, color: '#666' }}>On Premium and Pro plans</p>
             </div>
-            <div style={{ textAlign: 'center', padding: '1.5rem', background: '#f0fdf4', borderRadius: '8px' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1.5rem',
+                background: '#f0fdf4',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚡</div>
               <h4 style={{ margin: '0 0 0.5rem 0' }}>Quick Verification</h4>
               <p style={{ margin: 0, color: '#666' }}>2-3 business days</p>
             </div>
-            <div style={{ textAlign: 'center', padding: '1.5rem', background: '#fefce8', borderRadius: '8px' }}>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1.5rem',
+                background: '#fefce8',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📚</div>
               <h4 style={{ margin: '0 0 0.5rem 0' }}>Full Access</h4>
               <p style={{ margin: 0, color: '#666' }}>All premium features</p>
@@ -193,13 +229,22 @@ function StudentDiscountPage({ currentUser, setPage }) {
 
           {/* Current Status */}
           {studentDiscount ? (
-            <div style={{
-              padding: '1.5rem',
-              border: `2px solid ${getStatusColor(studentDiscount.verification_status)}`,
-              borderRadius: '8px',
-              background: `${getStatusColor(studentDiscount.verification_status)}10`
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div
+              style={{
+                padding: '1.5rem',
+                border: `2px solid ${getStatusColor(studentDiscount.verification_status)}`,
+                borderRadius: '8px',
+                background: `${getStatusColor(studentDiscount.verification_status)}10`
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '1rem'
+                }}
+              >
                 <h4 style={{ margin: 0 }}>Your Student Discount Status</h4>
                 <span
                   style={{
@@ -215,22 +260,24 @@ function StudentDiscountPage({ currentUser, setPage }) {
                 </span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem'
+                }}
+              >
                 <div>
                   <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.25rem' }}>
                     Student Email
                   </div>
-                  <div style={{ fontWeight: 600 }}>
-                    {studentDiscount.student_email}
-                  </div>
+                  <div style={{ fontWeight: 600 }}>{studentDiscount.student_email}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.25rem' }}>
                     Institution
                   </div>
-                  <div style={{ fontWeight: 600 }}>
-                    {studentDiscount.institution_name}
-                  </div>
+                  <div style={{ fontWeight: 600 }}>{studentDiscount.institution_name}</div>
                 </div>
                 <div>
                   <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.25rem' }}>
@@ -253,12 +300,21 @@ function StudentDiscountPage({ currentUser, setPage }) {
               </div>
 
               {studentDiscount.verification_status === 'approved' && (
-                <div style={{ marginTop: '1rem', padding: '1rem', background: '#10b981', color: 'white', borderRadius: '6px' }}>
+                <div
+                  style={{
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    background: '#10b981',
+                    color: 'white',
+                    borderRadius: '6px'
+                  }}
+                >
                   <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>
                     🎉 Congratulations! Your student discount is active.
                   </div>
                   <div>
-                    You can now get 50% off Premium and Pro plans. The discount will be automatically applied at checkout.
+                    You can now get 50% off Premium and Pro plans. The discount will be
+                    automatically applied at checkout.
                   </div>
                   <button
                     onClick={() => setPage('subscriptions')}
@@ -280,25 +336,42 @@ function StudentDiscountPage({ currentUser, setPage }) {
               )}
 
               {studentDiscount.verification_status === 'rejected' && (
-                <div style={{ marginTop: '1rem', padding: '1rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px' }}>
+                <div
+                  style={{
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '6px'
+                  }}
+                >
                   <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#dc2626' }}>
                     Application Rejected
                   </div>
                   <div style={{ color: '#666' }}>
-                    Unfortunately, we couldn't verify your student status. Please ensure you're using a valid institutional email 
-                    and have provided proper documentation. You can reapply with updated information.
+                    Unfortunately, we couldn't verify your student status. Please ensure you're
+                    using a valid institutional email and have provided proper documentation. You
+                    can reapply with updated information.
                   </div>
                 </div>
               )}
 
               {studentDiscount.verification_status === 'pending' && (
-                <div style={{ marginTop: '1rem', padding: '1rem', background: '#fffbeb', border: '1px solid #fed7aa', borderRadius: '6px' }}>
+                <div
+                  style={{
+                    marginTop: '1rem',
+                    padding: '1rem',
+                    background: '#fffbeb',
+                    border: '1px solid #fed7aa',
+                    borderRadius: '6px'
+                  }}
+                >
                   <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: '#d97706' }}>
                     Under Review
                   </div>
                   <div style={{ color: '#666' }}>
-                    We're currently reviewing your student discount application. This typically takes 2-3 business days. 
-                    We'll notify you via email once the review is complete.
+                    We're currently reviewing your student discount application. This typically
+                    takes 2-3 business days. We'll notify you via email once the review is complete.
                   </div>
                 </div>
               )}
@@ -326,7 +399,7 @@ function StudentDiscountPage({ currentUser, setPage }) {
         </div>
 
         {/* Requirements */}
-        <div className="card">
+        <div className='card'>
           <h3>Requirements</h3>
           <div style={{ display: 'grid', gap: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
@@ -334,7 +407,8 @@ function StudentDiscountPage({ currentUser, setPage }) {
               <div>
                 <h4 style={{ margin: '0 0 0.5rem 0' }}>Valid Student Email</h4>
                 <p style={{ margin: 0, color: '#666' }}>
-                  Use your official institutional email address (.edu, .ac.zm, .edu.zm, or university-specific domains)
+                  Use your official institutional email address (.edu, .ac.zm, .edu.zm, or
+                  university-specific domains)
                 </p>
               </div>
             </div>
@@ -352,7 +426,8 @@ function StudentDiscountPage({ currentUser, setPage }) {
               <div>
                 <h4 style={{ margin: '0 0 0.5rem 0' }}>Verification Document</h4>
                 <p style={{ margin: 0, color: '#666' }}>
-                  Upload a clear photo of your student ID, enrollment letter, or current transcript (PDF, JPG, PNG)
+                  Upload a clear photo of your student ID, enrollment letter, or current transcript
+                  (PDF, JPG, PNG)
                 </p>
               </div>
             </div>
@@ -362,40 +437,42 @@ function StudentDiscountPage({ currentUser, setPage }) {
 
       {/* Application Form Modal */}
       {showApplicationForm && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflowY: 'auto'
-          }}>
-            <h3 style={{ margin: '0 0 1.5rem 0' }}>
-              Apply for Student Discount
-            </h3>
-            
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '500px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
+            <h3 style={{ margin: '0 0 1.5rem 0' }}>Apply for Student Discount</h3>
+
             <form onSubmit={handleSubmit}>
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Student Email Address *</label>
                 <input
-                  type="email"
+                  type='email'
                   value={formData.student_email}
-                  onChange={(e) => setFormData({...formData, student_email: e.target.value})}
-                  placeholder="your.name@university.edu.zm"
+                  onChange={e => setFormData({ ...formData, student_email: e.target.value })}
+                  placeholder='your.name@university.edu.zm'
                   required
                 />
                 {formData.student_email && !isEduEmail(formData.student_email) && (
@@ -405,34 +482,36 @@ function StudentDiscountPage({ currentUser, setPage }) {
                 )}
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Institution Name *</label>
                 <input
-                  type="text"
+                  type='text'
                   value={formData.institution_name}
-                  onChange={(e) => setFormData({...formData, institution_name: e.target.value})}
-                  placeholder="University of Zambia"
+                  onChange={e => setFormData({ ...formData, institution_name: e.target.value })}
+                  placeholder='University of Zambia'
                   required
                 />
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Student ID *</label>
                 <input
-                  type="text"
+                  type='text'
                   value={formData.student_id}
-                  onChange={(e) => setFormData({...formData, student_id: e.target.value})}
-                  placeholder="Your student identification number"
+                  onChange={e => setFormData({ ...formData, student_id: e.target.value })}
+                  placeholder='Your student identification number'
                   required
                 />
               </div>
 
-              <div className="form-group">
+              <div className='form-group'>
                 <label>Verification Document *</label>
                 <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={(e) => setFormData({...formData, verification_document: e.target.files[0]})}
+                  type='file'
+                  accept='.pdf,.jpg,.jpeg,.png'
+                  onChange={e =>
+                    setFormData({ ...formData, verification_document: e.target.files[0] })
+                  }
                   required
                 />
                 <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
@@ -440,9 +519,16 @@ function StudentDiscountPage({ currentUser, setPage }) {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '2rem' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  justifyContent: 'flex-end',
+                  marginTop: '2rem'
+                }}
+              >
                 <button
-                  type="button"
+                  type='button'
                   onClick={() => {
                     setShowApplicationForm(false);
                     setFormData({
@@ -461,7 +547,7 @@ function StudentDiscountPage({ currentUser, setPage }) {
                   Cancel
                 </button>
                 <button
-                  type="submit"
+                  type='submit'
                   disabled={uploading}
                   style={{
                     width: 'auto',

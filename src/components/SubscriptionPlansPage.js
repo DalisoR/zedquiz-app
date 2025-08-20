@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useToastNotification } from '../hooks/useToastNotification';
 
-function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBillingCycle: setGlobalBillingCycle }) {
+function SubscriptionPlansPage({
+  currentUser,
+  setPage,
+  setSelectedPlan,
+  setBillingCycle: setGlobalBillingCycle
+}) {
   const [loading, setLoading] = useState(false);
   const [billingCycle, setBillingCycle] = useState('monthly');
 
@@ -57,7 +62,7 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
     }
   ];
 
-  const handleSubscribe = async (plan) => {
+  const handleSubscribe = async plan => {
     if (!currentUser) {
       showError('Please log in to subscribe');
       setPage('login');
@@ -77,16 +82,16 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
     // Set selected plan and billing cycle for payment processing
     if (setSelectedPlan) setSelectedPlan(plan);
     if (setGlobalBillingCycle) setGlobalBillingCycle(billingCycle);
-    
+
     // Navigate to payment processing
     setPage('payment-processing');
   };
 
-  const getPlanPrice = (plan) => {
+  const getPlanPrice = plan => {
     return billingCycle === 'yearly' ? plan.price_yearly : plan.price_monthly;
   };
 
-  const getSavings = (plan) => {
+  const getSavings = plan => {
     if (billingCycle === 'yearly' && plan.price_yearly > 0) {
       const monthlyCost = plan.price_monthly * 12;
       const savings = monthlyCost - plan.price_yearly;
@@ -96,20 +101,27 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
   };
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Choose Your Plan</h2>
-        <button className="back-button" onClick={() => setPage('dashboard')}>
+        <button className='back-button' onClick={() => setPage('dashboard')}>
           Back to Dashboard
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Billing Toggle */}
-        <div className="card">
+        <div className='card'>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <h3>Select Billing Cycle</h3>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                marginTop: '1rem'
+              }}
+            >
               <button
                 onClick={() => setBillingCycle('monthly')}
                 style={{
@@ -143,16 +155,22 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
         </div>
 
         {/* Plans Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-          {plans.map((plan) => {
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: '2rem'
+          }}
+        >
+          {plans.map(plan => {
             const price = getPlanPrice(plan);
             const savings = getSavings(plan);
             const isCurrentPlan = currentUser?.subscription_tier === plan.id;
-            
+
             return (
               <div
                 key={plan.id}
-                className="card"
+                className='card'
                 style={{
                   position: 'relative',
                   border: plan.popular ? '2px solid #3b82f6' : '1px solid #e5e7eb',
@@ -160,18 +178,20 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
                 }}
               >
                 {plan.popular && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '-12px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: '#3b82f6',
-                    color: 'white',
-                    padding: '0.25rem 1rem',
-                    borderRadius: '20px',
-                    fontSize: '0.75rem',
-                    fontWeight: 600
-                  }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '-12px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: '#3b82f6',
+                      color: 'white',
+                      padding: '0.25rem 1rem',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600
+                    }}
+                  >
                     Most Popular
                   </div>
                 )}
@@ -193,12 +213,14 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
                     </div>
                   )}
                   {savings > 0 && (
-                    <div style={{ 
-                      fontSize: '0.75rem', 
-                      color: '#10b981', 
-                      fontWeight: 600,
-                      marginTop: '0.25rem'
-                    }}>
+                    <div
+                      style={{
+                        fontSize: '0.75rem',
+                        color: '#10b981',
+                        fontWeight: 600,
+                        marginTop: '0.25rem'
+                      }}
+                    >
                       Save K{savings} per year!
                     </div>
                   )}
@@ -219,7 +241,9 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
                           fontSize: '0.875rem'
                         }}
                       >
-                        <span style={{ color: '#10b981', marginRight: '0.75rem', fontSize: '1rem' }}>
+                        <span
+                          style={{ color: '#10b981', marginRight: '0.75rem', fontSize: '1rem' }}
+                        >
                           ✓
                         </span>
                         {feature}
@@ -263,7 +287,11 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
                         opacity: loading ? 0.7 : 1
                       }}
                     >
-                      {loading ? 'Processing...' : plan.id === 'free' ? 'Current Plan' : 'Subscribe with PesaPal'}
+                      {loading
+                        ? 'Processing...'
+                        : plan.id === 'free'
+                        ? 'Current Plan'
+                        : 'Subscribe with PesaPal'}
                     </button>
                   )}
                 </div>
@@ -273,26 +301,53 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
         </div>
 
         {/* Payment Methods */}
-        <div className="card">
+        <div className='card'>
           <h3>🔒 Secure Payment with PesaPal</h3>
           <p style={{ marginBottom: '1rem', color: '#666' }}>
             We use PesaPal, Zambia's trusted payment gateway, to process all transactions securely.
           </p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '1rem'
+            }}
+          >
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f9fafb',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📱</div>
               <h4 style={{ margin: '0 0 0.25rem 0' }}>Mobile Money</h4>
               <p style={{ margin: 0, fontSize: '0.875rem', color: '#666' }}>MTN, Airtel Money</p>
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f9fafb',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🏦</div>
               <h4 style={{ margin: '0 0 0.25rem 0' }}>Bank Transfer</h4>
               <p style={{ margin: 0, fontSize: '0.875rem', color: '#666' }}>Direct bank transfer</p>
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f9fafb', borderRadius: '8px' }}>
+
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f9fafb',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💳</div>
               <h4 style={{ margin: '0 0 0.25rem 0' }}>Card Payment</h4>
               <p style={{ margin: 0, fontSize: '0.875rem', color: '#666' }}>Visa, Mastercard</p>
@@ -301,43 +356,43 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
         </div>
 
         {/* FAQ Section */}
-        <div className="card">
+        <div className='card'>
           <h3>Frequently Asked Questions</h3>
-          
+
           <div style={{ display: 'grid', gap: '1.5rem', marginTop: '1rem' }}>
             <div>
-              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>
-                Can I change plans later?
-              </h4>
+              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>Can I change plans later?</h4>
               <p style={{ margin: 0, color: '#666' }}>
-                Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately.
-              </p>
-            </div>
-            
-            <div>
-              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>
-                Do you offer student discounts?
-              </h4>
-              <p style={{ margin: 0, color: '#666' }}>
-                Yes, we offer a 50% discount for students with a valid student ID. Contact support for verification.
-              </p>
-            </div>
-            
-            <div>
-              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>
-                What payment methods do you accept?
-              </h4>
-              <p style={{ margin: 0, color: '#666' }}>
-                We accept Mobile Money (MTN, Airtel), Visa, Mastercard, and bank transfers through PesaPal.
+                Yes, you can upgrade or downgrade your plan at any time. Changes take effect
+                immediately.
               </p>
             </div>
 
             <div>
               <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>
-                Can I cancel anytime?
+                Do you offer student discounts?
               </h4>
               <p style={{ margin: 0, color: '#666' }}>
-                Yes, you can cancel your subscription at any time. You'll continue to have access until the end of your billing period.
+                Yes, we offer a 50% discount for students with a valid student ID. Contact support
+                for verification.
+              </p>
+            </div>
+
+            <div>
+              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>
+                What payment methods do you accept?
+              </h4>
+              <p style={{ margin: 0, color: '#666' }}>
+                We accept Mobile Money (MTN, Airtel), Visa, Mastercard, and bank transfers through
+                PesaPal.
+              </p>
+            </div>
+
+            <div>
+              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 600 }}>Can I cancel anytime?</h4>
+              <p style={{ margin: 0, color: '#666' }}>
+                Yes, you can cancel your subscription at any time. You'll continue to have access
+                until the end of your billing period.
               </p>
             </div>
 
@@ -346,7 +401,8 @@ function SubscriptionPlansPage({ currentUser, setPage, setSelectedPlan, setBilli
                 Is my payment information secure?
               </h4>
               <p style={{ margin: 0, color: '#666' }}>
-                Absolutely! All payments are processed through PesaPal's secure, PCI-compliant platform. We never store your payment details.
+                Absolutely! All payments are processed through PesaPal's secure, PCI-compliant
+                platform. We never store your payment details.
               </p>
             </div>
           </div>

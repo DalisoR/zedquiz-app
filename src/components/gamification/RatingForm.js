@@ -9,7 +9,7 @@ const RatingForm = ({ contentId, contentType, tutorId, studentId, onRatingSubmit
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     if (rating === 0) {
       setError('Please select a rating before submitting.');
@@ -19,18 +19,16 @@ const RatingForm = ({ contentId, contentType, tutorId, studentId, onRatingSubmit
     setError(null);
 
     try {
-      const { data, error: submissionError } = await supabase
-        .from('content_ratings')
-        .insert([
-          {
-            content_id: contentId,
-            content_type: contentType,
-            tutor_id: tutorId,
-            student_id: studentId,
-            rating: rating,
-            comment: comment,
-          },
-        ]);
+      const { data, error: submissionError } = await supabase.from('content_ratings').insert([
+        {
+          content_id: contentId,
+          content_type: contentType,
+          tutor_id: tutorId,
+          student_id: studentId,
+          rating: rating,
+          comment: comment
+        }
+      ]);
 
       if (submissionError) {
         throw submissionError;
@@ -42,11 +40,10 @@ const RatingForm = ({ contentId, contentType, tutorId, studentId, onRatingSubmit
       }
       // Reset form after a delay
       setTimeout(() => {
-          setRating(0);
-          setComment('');
-          setMessage('');
+        setRating(0);
+        setComment('');
+        setMessage('');
       }, 3000);
-
     } catch (err) {
       setError('There was an error submitting your rating. Please try again.');
       console.error('Rating submission error:', err);
@@ -56,19 +53,19 @@ const RatingForm = ({ contentId, contentType, tutorId, studentId, onRatingSubmit
   };
 
   return (
-    <div className="rating-form-container">
+    <div className='rating-form-container'>
       <h3>Rate this {contentType}</h3>
-      {error && <p className="error-message">{error}</p>}
-      {message && <p className="success-message">{message}</p>}
+      {error && <p className='error-message'>{error}</p>}
+      {message && <p className='success-message'>{message}</p>}
       <form onSubmit={handleSubmit}>
-        <div className="star-rating">
+        <div className='star-rating'>
           {[...Array(5)].map((_, index) => {
             const ratingValue = index + 1;
             return (
               <label key={ratingValue}>
                 <input
-                  type="radio"
-                  name="rating"
+                  type='radio'
+                  name='rating'
                   value={ratingValue}
                   onClick={() => setRating(ratingValue)}
                   disabled={isSubmitting || !!message}
@@ -79,12 +76,12 @@ const RatingForm = ({ contentId, contentType, tutorId, studentId, onRatingSubmit
           })}
         </div>
         <textarea
-          placeholder="Leave a comment (optional)"
+          placeholder='Leave a comment (optional)'
           value={comment}
-          onChange={(e) => setComment(e.target.value)}
+          onChange={e => setComment(e.target.value)}
           disabled={isSubmitting || !!message}
         />
-        <button type="submit" disabled={isSubmitting || !!message}>
+        <button type='submit' disabled={isSubmitting || !!message}>
           {isSubmitting ? 'Submitting...' : 'Submit Rating'}
         </button>
       </form>

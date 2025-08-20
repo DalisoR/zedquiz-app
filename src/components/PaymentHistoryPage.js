@@ -76,36 +76,46 @@ function PaymentHistoryPage({ currentUser, setPage }) {
     return filtered;
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status) {
-      case 'completed': return '#10b981';
-      case 'pending': return '#f59e0b';
-      case 'failed': return '#ef4444';
-      case 'cancelled': return '#6b7280';
-      default: return '#6b7280';
+      case 'completed':
+        return '#10b981';
+      case 'pending':
+        return '#f59e0b';
+      case 'failed':
+        return '#ef4444';
+      case 'cancelled':
+        return '#6b7280';
+      default:
+        return '#6b7280';
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = status => {
     switch (status) {
-      case 'completed': return '✅';
-      case 'pending': return '⏳';
-      case 'failed': return '❌';
-      case 'cancelled': return '🚫';
-      default: return '❓';
+      case 'completed':
+        return '✅';
+      case 'pending':
+        return '⏳';
+      case 'failed':
+        return '❌';
+      case 'cancelled':
+        return '🚫';
+      default:
+        return '❓';
     }
   };
 
-  const getPlanName = (planId) => {
+  const getPlanName = planId => {
     const planNames = {
-      'free': 'Free',
-      'premium': 'Premium',
-      'pro': 'Pro'
+      free: 'Free',
+      premium: 'Premium',
+      pro: 'Pro'
     };
     return planNames[planId] || planId;
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     return new Date(dateString).toLocaleDateString('en-GB', {
       year: 'numeric',
       month: 'short',
@@ -115,14 +125,14 @@ function PaymentHistoryPage({ currentUser, setPage }) {
     });
   };
 
-  const handleDownloadReceipt = (payment) => {
+  const handleDownloadReceipt = payment => {
     setSelectedPayment(payment);
     setShowReceiptModal(true);
   };
 
-  const generateReceiptHTML = (payment) => {
+  const generateReceiptHTML = payment => {
     const subscription = subscriptions.find(sub => sub.payment_id === payment.id);
-    
+
     return `
       <!DOCTYPE html>
       <html>
@@ -186,22 +196,30 @@ function PaymentHistoryPage({ currentUser, setPage }) {
             <span>Payment Method:</span>
             <span>${payment.payment_method_used || 'PesaPal'}</span>
           </div>
-          ${payment.payment_account ? `
+          ${
+            payment.payment_account
+              ? `
           <div class="detail-row">
             <span>Payment Account:</span>
             <span>${payment.payment_account}</span>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
           <div class="detail-row">
             <span>Status:</span>
             <span class="status status-${payment.status}">${payment.status.toUpperCase()}</span>
           </div>
-          ${payment.confirmation_code ? `
+          ${
+            payment.confirmation_code
+              ? `
           <div class="detail-row">
             <span>Confirmation Code:</span>
             <span>${payment.confirmation_code}</span>
           </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <div class="section">
@@ -212,7 +230,9 @@ function PaymentHistoryPage({ currentUser, setPage }) {
           </div>
         </div>
 
-        ${subscription ? `
+        ${
+          subscription
+            ? `
         <div class="section">
           <h3>Subscription Details</h3>
           <div class="detail-row">
@@ -228,7 +248,9 @@ function PaymentHistoryPage({ currentUser, setPage }) {
             <span>${subscription.status.toUpperCase()}</span>
           </div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <div class="footer">
           <p>Thank you for choosing ZedQuiz!</p>
@@ -242,7 +264,7 @@ function PaymentHistoryPage({ currentUser, setPage }) {
 
   const handlePrintReceipt = () => {
     if (!selectedPayment) return;
-    
+
     const receiptWindow = window.open('', '_blank');
     receiptWindow.document.write(generateReceiptHTML(selectedPayment));
     receiptWindow.document.close();
@@ -251,7 +273,7 @@ function PaymentHistoryPage({ currentUser, setPage }) {
 
   const handleDownloadReceiptPDF = () => {
     if (!selectedPayment) return;
-    
+
     const receiptWindow = window.open('', '_blank');
     receiptWindow.document.write(generateReceiptHTML(selectedPayment));
     receiptWindow.document.close();
@@ -261,7 +283,7 @@ function PaymentHistoryPage({ currentUser, setPage }) {
     const completed = payments.filter(p => p.status === 'completed');
     const totalSpent = completed.reduce((sum, p) => sum + parseFloat(p.amount), 0);
     const averagePayment = completed.length > 0 ? totalSpent / completed.length : 0;
-    
+
     return {
       totalPayments: payments.length,
       completedPayments: completed.length,
@@ -274,8 +296,8 @@ function PaymentHistoryPage({ currentUser, setPage }) {
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
+      <div className='main-container'>
+        <div className='card'>
           <p>Loading payment history...</p>
         </div>
       </div>
@@ -286,41 +308,75 @@ function PaymentHistoryPage({ currentUser, setPage }) {
   const summary = getPaymentSummary();
 
   return (
-    <div className="main-container">
-      <header className="main-header">
+    <div className='main-container'>
+      <header className='main-header'>
         <h2>Payment History</h2>
-        <button className="back-button" onClick={() => setPage('dashboard')}>
+        <button className='back-button' onClick={() => setPage('dashboard')}>
           Back to Dashboard
         </button>
       </header>
 
-      <div className="content-body">
+      <div className='content-body'>
         {/* Payment Summary */}
-        <div className="card">
+        <div className='card'>
           <h3>Payment Summary</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+              gap: '1rem'
+            }}
+          >
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
                 {summary.totalPayments}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#666' }}>Total Payments</div>
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#10b981' }}>
                 {summary.completedPayments}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#666' }}>Successful</div>
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>
                 K{summary.totalSpent.toFixed(2)}
               </div>
               <div style={{ fontSize: '0.875rem', color: '#666' }}>Total Spent</div>
             </div>
-            
-            <div style={{ textAlign: 'center', padding: '1rem', background: '#f8f9fa', borderRadius: '8px' }}>
+
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '1rem',
+                background: '#f8f9fa',
+                borderRadius: '8px'
+              }}
+            >
               <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#8b5cf6' }}>
                 K{summary.averagePayment.toFixed(2)}
               </div>
@@ -330,8 +386,16 @@ function PaymentHistoryPage({ currentUser, setPage }) {
         </div>
 
         {/* Filters and Sorting */}
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className='card'>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '1rem'
+            }}
+          >
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <div>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, marginRight: '0.5rem' }}>
@@ -339,34 +403,34 @@ function PaymentHistoryPage({ currentUser, setPage }) {
                 </label>
                 <select
                   value={filter}
-                  onChange={(e) => setFilter(e.target.value)}
+                  onChange={e => setFilter(e.target.value)}
                   style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                 >
-                  <option value="all">All Payments</option>
-                  <option value="completed">Completed</option>
-                  <option value="pending">Pending</option>
-                  <option value="failed">Failed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value='all'>All Payments</option>
+                  <option value='completed'>Completed</option>
+                  <option value='pending'>Pending</option>
+                  <option value='failed'>Failed</option>
+                  <option value='cancelled'>Cancelled</option>
                 </select>
               </div>
-              
+
               <div>
                 <label style={{ fontSize: '0.875rem', fontWeight: 600, marginRight: '0.5rem' }}>
                   Sort by:
                 </label>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={e => setSortBy(e.target.value)}
                   style={{ padding: '0.5rem', borderRadius: '6px', border: '1px solid #e5e7eb' }}
                 >
-                  <option value="date_desc">Newest First</option>
-                  <option value="date_asc">Oldest First</option>
-                  <option value="amount_desc">Highest Amount</option>
-                  <option value="amount_asc">Lowest Amount</option>
+                  <option value='date_desc'>Newest First</option>
+                  <option value='date_asc'>Oldest First</option>
+                  <option value='amount_desc'>Highest Amount</option>
+                  <option value='amount_asc'>Lowest Amount</option>
                 </select>
               </div>
             </div>
-            
+
             <div style={{ fontSize: '0.875rem', color: '#666' }}>
               Showing {filteredPayments.length} of {payments.length} payments
             </div>
@@ -374,18 +438,17 @@ function PaymentHistoryPage({ currentUser, setPage }) {
         </div>
 
         {/* Payment List */}
-        <div className="card">
+        <div className='card'>
           <h3>Payment History</h3>
-          
+
           {filteredPayments.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '3rem', color: '#666' }}>
               <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>💳</div>
               <h4>No payments found</h4>
               <p>
-                {filter === 'all' 
-                  ? "You haven't made any payments yet." 
-                  : `No ${filter} payments found.`
-                }
+                {filter === 'all'
+                  ? "You haven't made any payments yet."
+                  : `No ${filter} payments found.`}
               </p>
               {filter === 'all' && (
                 <button
@@ -398,7 +461,7 @@ function PaymentHistoryPage({ currentUser, setPage }) {
             </div>
           ) : (
             <div style={{ display: 'grid', gap: '1rem' }}>
-              {filteredPayments.map((payment) => (
+              {filteredPayments.map(payment => (
                 <div
                   key={payment.id}
                   style={{
@@ -408,12 +471,24 @@ function PaymentHistoryPage({ currentUser, setPage }) {
                     background: 'white'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      marginBottom: '1rem'
+                    }}
+                  >
                     <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <span style={{ fontSize: '1.25rem' }}>
-                          {getStatusIcon(payment.status)}
-                        </span>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          marginBottom: '0.5rem'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.25rem' }}>{getStatusIcon(payment.status)}</span>
                         <h4 style={{ margin: 0, fontSize: '1.125rem' }}>
                           {getPlanName(payment.plan_id)} Subscription
                         </h4>
@@ -423,8 +498,12 @@ function PaymentHistoryPage({ currentUser, setPage }) {
                             borderRadius: '20px',
                             fontSize: '0.75rem',
                             fontWeight: 600,
-                            background: payment.status === 'completed' ? '#e8f5e9' : 
-                                       payment.status === 'pending' ? '#fff3e0' : '#fee2e2',
+                            background:
+                              payment.status === 'completed'
+                                ? '#e8f5e9'
+                                : payment.status === 'pending'
+                                ? '#fff3e0'
+                                : '#fee2e2',
                             color: getStatusColor(payment.status)
                           }}
                         >
@@ -435,7 +514,7 @@ function PaymentHistoryPage({ currentUser, setPage }) {
                         Payment ID: {payment.id}
                       </p>
                     </div>
-                    
+
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#2c3e50' }}>
                         {payment.currency} {parseFloat(payment.amount).toFixed(2)}
@@ -446,44 +525,73 @@ function PaymentHistoryPage({ currentUser, setPage }) {
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                      gap: '1rem',
+                      marginBottom: '1rem'
+                    }}
+                  >
                     <div>
-                      <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', fontWeight: 600 }}>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: '#666',
+                          textTransform: 'uppercase',
+                          fontWeight: 600
+                        }}
+                      >
                         Date
                       </div>
-                      <div style={{ fontSize: '0.875rem' }}>
-                        {formatDate(payment.created_at)}
-                      </div>
+                      <div style={{ fontSize: '0.875rem' }}>{formatDate(payment.created_at)}</div>
                     </div>
-                    
+
                     <div>
-                      <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', fontWeight: 600 }}>
+                      <div
+                        style={{
+                          fontSize: '0.75rem',
+                          color: '#666',
+                          textTransform: 'uppercase',
+                          fontWeight: 600
+                        }}
+                      >
                         Payment Method
                       </div>
                       <div style={{ fontSize: '0.875rem' }}>
                         {payment.payment_method_used || 'PesaPal'}
                       </div>
                     </div>
-                    
+
                     {payment.payment_account && (
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', fontWeight: 600 }}>
+                        <div
+                          style={{
+                            fontSize: '0.75rem',
+                            color: '#666',
+                            textTransform: 'uppercase',
+                            fontWeight: 600
+                          }}
+                        >
                           Account
                         </div>
-                        <div style={{ fontSize: '0.875rem' }}>
-                          {payment.payment_account}
-                        </div>
+                        <div style={{ fontSize: '0.875rem' }}>{payment.payment_account}</div>
                       </div>
                     )}
-                    
+
                     {payment.confirmation_code && (
                       <div>
-                        <div style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase', fontWeight: 600 }}>
+                        <div
+                          style={{
+                            fontSize: '0.75rem',
+                            color: '#666',
+                            textTransform: 'uppercase',
+                            fontWeight: 600
+                          }}
+                        >
                           Confirmation
                         </div>
-                        <div style={{ fontSize: '0.875rem' }}>
-                          {payment.confirmation_code}
-                        </div>
+                        <div style={{ fontSize: '0.875rem' }}>{payment.confirmation_code}</div>
                       </div>
                     )}
                   </div>
@@ -510,29 +618,40 @@ function PaymentHistoryPage({ currentUser, setPage }) {
 
       {/* Receipt Modal */}
       {showReceiptModal && selectedPayment && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: '1rem'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '100%',
-            maxHeight: '90vh',
-            overflow: 'auto'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem'
+          }}
+        >
+          <div
+            style={{
+              background: 'white',
+              borderRadius: '12px',
+              padding: '2rem',
+              maxWidth: '500px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem'
+              }}
+            >
               <h3 style={{ margin: 0 }}>Payment Receipt</h3>
               <button
                 onClick={() => setShowReceiptModal(false)}
@@ -553,30 +672,52 @@ function PaymentHistoryPage({ currentUser, setPage }) {
                 <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#3b82f6' }}>
                   ZedQuiz
                 </div>
-                <div style={{ fontSize: '1.125rem', margin: '0.5rem 0' }}>
-                  Payment Receipt
-                </div>
+                <div style={{ fontSize: '1.125rem', margin: '0.5rem 0' }}>Payment Receipt</div>
                 <div style={{ fontSize: '0.875rem', color: '#666' }}>
                   Receipt #{selectedPayment.id}
                 </div>
               </div>
 
               <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '0.5rem'
+                  }}
+                >
                   <span>Plan:</span>
                   <span style={{ fontWeight: 600 }}>{getPlanName(selectedPayment.plan_id)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '0.5rem'
+                  }}
+                >
                   <span>Amount:</span>
                   <span style={{ fontWeight: 600 }}>
                     {selectedPayment.currency} {parseFloat(selectedPayment.amount).toFixed(2)}
                   </span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '0.5rem'
+                  }}
+                >
                   <span>Date:</span>
                   <span>{formatDate(selectedPayment.created_at)}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginBottom: '0.5rem'
+                  }}
+                >
                   <span>Status:</span>
                   <span style={{ color: getStatusColor(selectedPayment.status), fontWeight: 600 }}>
                     {selectedPayment.status.toUpperCase()}

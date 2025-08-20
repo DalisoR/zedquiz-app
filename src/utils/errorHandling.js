@@ -5,14 +5,17 @@
 // Common error messages
 const ERROR_MESSAGES = {
   // Authentication errors
-  'auth/email-already-in-use': 'This email is already registered. Please use a different email or try logging in.',
+  'auth/email-already-in-use':
+    'This email is already registered. Please use a different email or try logging in.',
   'auth/invalid-email': 'Please enter a valid email address.',
   'auth/weak-password': 'Password should be at least 6 characters long.',
   'auth/user-not-found': 'No account found with this email. Please check your email or sign up.',
   'auth/wrong-password': 'Incorrect password. Please try again or reset your password.',
-  'auth/too-many-requests': 'Too many failed login attempts. Please try again later or reset your password.',
-  'auth/network-request-failed': 'Network error. Please check your internet connection and try again.',
-  
+  'auth/too-many-requests':
+    'Too many failed login attempts. Please try again later or reset your password.',
+  'auth/network-request-failed':
+    'Network error. Please check your internet connection and try again.',
+
   // Form validation
   'validation/required': 'This field is required.',
   'validation/email': 'Please enter a valid email address.',
@@ -21,7 +24,7 @@ const ERROR_MESSAGES = {
   'validation/phone': 'Please enter a valid phone number.',
   'validation/file-size': 'File size must be less than 5MB.',
   'validation/file-type': 'Only PDF files are allowed.',
-  
+
   // API errors
   'api/network-error': 'Unable to connect to the server. Please check your internet connection.',
   'api/timeout': 'Request timed out. Please try again.',
@@ -29,9 +32,9 @@ const ERROR_MESSAGES = {
   'api/forbidden': 'You do not have permission to perform this action.',
   'api/not-found': 'The requested resource was not found.',
   'api/server-error': 'An unexpected server error occurred. Please try again later.',
-  
+
   // Default
-  'default': 'Something went wrong. Please try again later.'
+  default: 'Something went wrong. Please try again later.'
 };
 
 /**
@@ -42,41 +45,41 @@ const ERROR_MESSAGES = {
  */
 export const getErrorMessage = (error, context) => {
   if (!error) return ERROR_MESSAGES['default'];
-  
+
   // Handle string error codes
   if (typeof error === 'string') {
     return ERROR_MESSAGES[error] || error || ERROR_MESSAGES['default'];
   }
-  
+
   // Handle Error objects
   if (error instanceof Error) {
     // Check for Supabase errors
     if (error.code && ERROR_MESSAGES[error.code]) {
       return ERROR_MESSAGES[error.code];
     }
-    
+
     // Check for network errors
     if (error.message && error.message.includes('Network Error')) {
       return ERROR_MESSAGES['api/network-error'];
     }
-    
+
     return error.message || ERROR_MESSAGES['default'];
   }
-  
+
   // Handle API response errors
   if (error.error_description) {
     return error.error_description;
   }
-  
+
   if (error.message) {
     return error.message;
   }
-  
+
   // Add context if available
   if (context) {
     return `${context}: ${ERROR_MESSAGES['default']}`;
   }
-  
+
   return ERROR_MESSAGES['default'];
 };
 
@@ -89,18 +92,18 @@ export const getErrorMessage = (error, context) => {
  */
 export const showError = (error, context, setError, field) => {
   const message = getErrorMessage(error, context);
-  
+
   // Log the full error in development
   if (process.env.NODE_ENV === 'development') {
     console.error('Error:', error);
   }
-  
+
   // Set form field error if setError function is provided
   if (setError && field) {
     setError(field, { type: 'manual', message });
     return;
   }
-  
+
   // Otherwise show a toast/alert
   // You can replace this with your preferred notification system
   alert(message);
@@ -111,7 +114,7 @@ export const showError = (error, context, setError, field) => {
  * @param {function} setError - The form's setError function
  * @returns {function} A validation function that can be used with react-hook-form
  */
-export const createValidationHandler = (setError) => {
+export const createValidationHandler = setError => {
   return (field, error) => {
     showError(error, null, setError, field);
   };
